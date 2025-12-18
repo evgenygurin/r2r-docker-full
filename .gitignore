@@ -1,0 +1,8 @@
+.env
+.env copy
+data/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
+docker/env/*.env

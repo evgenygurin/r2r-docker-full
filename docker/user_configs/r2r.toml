@@ -1,0 +1,204 @@
+[app]
+default_max_documents_per_user = 100_000
+default_max_chunks_per_user = 1_000_000
+default_max_collections_per_user = 1_000
+default_max_upload_size = 500_000_000  
+fast_llm = "vertex_ai/gemini-2.5-flash-lite"    
+vlm = "vertex_ai/gemini-2.5-flash-lite"          
+audio_lm = "openai/whisper-1"                    
+planning_llm = "vertex_ai/gemini-2.5-flash"      
+reasoning_llm = "vertex_ai/gemini-2.5-pro"       
+quality_llm = "vertex_ai/gemini-2.5-pro"         
+[app.max_upload_size_by_type]
+txt = 5_000_000       
+md = 5_000_000        
+pdf = 100_000_000     
+docx = 50_000_000     
+pptx = 100_000_000    
+xlsx = 50_000_000     
+csv = 10_000_000      
+html = 10_000_000     
+png = 20_000_000      
+jpg = 20_000_000      
+py = 5_000_000        
+js = 5_000_000        
+ts = 5_000_000        
+jsx = 5_000_000       
+tsx = 5_000_000       
+java = 5_000_000      
+cpp = 5_000_000       
+c = 5_000_000         
+go = 5_000_000        
+rs = 5_000_000        
+rb = 5_000_000        
+php = 5_000_000       
+swift = 5_000_000     
+kt = 5_000_000        
+scala = 5_000_000     
+cs = 5_000_000        
+vue = 5_000_000       
+svelte = 5_000_000    
+sh = 2_000_000        
+yaml = 2_000_000      
+toml = 2_000_000      
+json = 10_000_000     
+xml = 10_000_000      
+sql = 5_000_000       
+[agent]
+rag_agent_static_prompt = "rag_agent"
+tools = ["search_file_knowledge"]
+  [agent.generation_config]
+  model = "vertex_ai/gemini-2.5-pro"
+  max_tokens_to_sample = 65536
+  temperature = 0.1
+  top_p = 1.0
+[auth]
+provider = "r2r"
+access_token_lifetime_in_minutes = 60   
+refresh_token_lifetime_in_days = 7      
+require_authentication = false   
+require_email_verification = false
+default_admin_email = "e.a.gurin@gmail.com"
+default_admin_password = ""  # Set via environment variable  
+[completion]
+provider = "litellm"
+concurrent_request_limit = 16
+max_retries = 3           
+initial_backoff = 1.0     
+max_backoff = 64.0        
+request_timeout = 120.0   
+  [completion.generation_config]
+  model = "vertex_ai/gemini-2.5-flash"
+  temperature = 0.1
+  top_p = 1.0
+  max_tokens_to_sample = 65536
+  stream = false
+[crypto]
+provider = "bcrypt"
+[database]
+provider = "postgres"
+default_collection_name = "Default"
+default_collection_description = "Your default collection."
+batch_size = 512
+  [database.postgres_configuration_settings]
+    shared_buffers = 524288   
+    effective_cache_size = 1572864   
+    maintenance_work_mem = 1048576   
+    work_mem = 65536   
+    max_connections = 100
+    max_parallel_workers_per_gather = 2   
+    max_parallel_workers = 4              
+    max_parallel_maintenance_workers = 2  
+    max_worker_processes = 4              
+    wal_buffers = 2048   
+    max_wal_size = 2048   
+    min_wal_size = 512   
+    checkpoint_completion_target = 0.9
+    random_page_cost = 1.1
+    effective_io_concurrency = 200
+    default_statistics_target = 100
+    huge_pages = "try"
+  [database.graph_creation_settings]
+    graph_entity_description_prompt = "graph_entity_description"
+    entity_types = [
+      "CLASS",          
+      "FUNCTION",       
+      "METHOD",         
+      "MODULE",         
+      "IMPORT",         
+      "API_ENDPOINT",   
+      "INTERFACE",      
+      "TYPE",           
+      "CONSTANT",       
+      "DATABASE_TABLE"  
+    ]
+    relation_types = [
+      "CALLS",          
+      "INHERITS",       
+      "IMPORTS",        
+      "USES",           
+      "DEPENDS_ON",     
+      "IMPLEMENTS",     
+      "RETURNS",        
+      "CONTAINS",       
+      "QUERIES"         
+    ]
+    fragment_merge_count = 4
+    max_knowledge_relationships = 150
+    max_description_input_length = 65536
+    generation_config = { model = "vertex_ai/gemini-2.5-flash", max_tokens_to_sample = 65536, temperature = 0.1 }
+  [database.graph_enrichment_settings]
+    max_summary_input_length = 65536
+    generation_config = { model = "vertex_ai/gemini-2.5-pro", max_tokens_to_sample = 65536, temperature = 0.1 }
+    leiden_params = {}
+  [database.graph_search_settings]
+    generation_config = { model = "vertex_ai/gemini-2.5-flash", max_tokens_to_sample = 65536, temperature = 0.1 }
+  [database.limits]
+    global_per_min = 10000      
+    monthly_limit = 10000000    
+  [database.route_limits]
+[embedding]
+provider = "litellm"
+base_model = "vertex_ai/text-embedding-004"
+base_dimension = 768   
+batch_size = 200
+concurrent_request_limit = 8
+max_retries = 3
+initial_backoff = 1.0
+max_backoff = 64.0
+quantization_settings = { quantization_type = "FP32" }
+[completion_embedding]
+provider = "litellm"
+base_model = "vertex_ai/text-embedding-004"
+base_dimension = 768
+batch_size = 200                
+concurrent_request_limit = 8    
+max_retries = 3
+initial_backoff = 1.0
+max_backoff = 64.0
+[file]
+provider = "s3"
+bucket_name = "r2r"
+endpoint_url = "http://minio:9000"
+aws_access_key_id = "minio"
+aws_secret_access_key = ""  # Set via MINIO_ROOT_PASSWORD env var
+[ingestion]
+provider = "unstructured_local"   
+excluded_parsers = []             
+strategy = "auto"                 
+chunking_strategy = "by_title"
+chunk_size = 512              
+new_after_n_chars = 512       
+max_characters = 800          
+combine_under_n_chars = 128   
+chunk_overlap = 64
+overlap = 64   
+document_summary_model = "vertex_ai/gemini-2.5-flash"   
+skip_document_summary = false                           
+document_summary_system_prompt = "system"
+document_summary_task_prompt = "summary"
+chunks_for_document_summary = 128
+document_summary_max_length = 100000
+vlm_batch_size = 10
+vlm_max_tokens_to_sample = 65536
+max_concurrent_vlm_tasks = 4        
+vlm_ocr_one_page_per_chunk = true   
+automatic_extraction = true
+  [ingestion.chunk_enrichment_settings]
+    enable_chunk_enrichment = false   
+    strategies = ["neighborhood"]   
+    forward_chunks = 2
+    backward_chunks = 2
+    semantic_neighbors = 3
+    semantic_similarity_threshold = 0.7
+    generation_config = { model = "vertex_ai/gemini-2.5-flash-lite", max_tokens_to_sample = 65536, temperature = 0.1 }
+[orchestration]
+provider = "hatchet"
+max_runs = 256
+kg_creation_concurrency_limit = 4
+ingestion_concurrency_limit = 4
+kg_concurrency_limit = 2
+[prompt]
+provider = "r2r"
+[email]
+provider = "console_mock"   
