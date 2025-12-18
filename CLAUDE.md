@@ -91,3 +91,8 @@ gcloud compute ssh r2r-vm-new --zone=us-central1-a \
 - `r2r-deploy-postgres-1` - Database
 - `r2r-deploy-minio-1` - S3-compatible storage
 - `r2r-deploy-hatchet-engine-1` - Task orchestration
+
+docker compose -f compose.full.yaml --profile postgres up --profile minio -d
+docker compose -f compose.full.yaml --profile postgres up --profile minio -d
+docker compose -f compose.full.yaml --profile postgres up --profile minio -d
+docker compose -f compose.full.yaml --profile postgres up --profile minio -d

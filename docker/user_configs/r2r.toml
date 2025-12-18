@@ -161,7 +161,7 @@ provider = "s3"
 bucket_name = "r2r"
 endpoint_url = "http://minio:9000"
 aws_access_key_id = "minio"
-aws_secret_access_key = ""  # Set via MINIO_ROOT_PASSWORD env var
+aws_secret_access_key = "ys08/VAJdJiUde0usaGCWLyjSdcicF29zVva5qW997Q="
 [ingestion]
 provider = "unstructured_local"   
 excluded_parsers = []             
