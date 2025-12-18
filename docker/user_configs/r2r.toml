@@ -174,7 +174,7 @@ combine_under_n_chars = 128
 chunk_overlap = 64
 overlap = 64   
 document_summary_model = "vertex_ai/gemini-2.5-flash"   
-skip_document_summary = true
+skip_document_summary = false
 document_summary_system_prompt = "system"
 document_summary_task_prompt = "summary"
 chunks_for_document_summary = 128
@@ -183,7 +183,7 @@ vlm_batch_size = 10
 vlm_max_tokens_to_sample = 65536
 max_concurrent_vlm_tasks = 4        
 vlm_ocr_one_page_per_chunk = true   
-automatic_extraction = false
+automatic_extraction = true
   [ingestion.chunk_enrichment_settings]
     enable_chunk_enrichment = false   
     strategies = ["neighborhood"]   
