@@ -88,7 +88,18 @@ To run R2R locally:
 docker compose -f compose.full.yaml --profile postgres --profile minio up -d
 ```
 
+## Additional Rules
+
+Security constraints and deployment procedures:
+@.claude/rules/security.md
+@.claude/rules/deployment.md
+
 ## Reference Documentation
 
 For GCloud commands, container names, and other reference info:
 @.claude/rules/gcloud-reference.md
+
+## Personal Overrides
+
+Copy `CLAUDE.local.md.template` to `CLAUDE.local.md` for personal preferences.
+@CLAUDE.local.md

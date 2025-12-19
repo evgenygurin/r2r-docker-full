@@ -1,0 +1,86 @@
+# Personal Claude Code Preferences
+
+> **Note:** Copy this file to `CLAUDE.local.md` (gitignored) and customize for your personal preferences.
+> These settings override project-level CLAUDE.md for your local development only.
+
+## Personal Workflow Preferences
+
+### Communication Style
+- Preferred language: English / Russian / Other
+- Verbosity level: Concise / Detailed / Balanced
+- Emoji usage: Minimal / Frequent / None
+
+### Code Style Preferences
+- Comment style: Inline / Block / Minimal
+- Variable naming: camelCase / snake_case / (auto-detect)
+- String quotes: Single / Double / (project default)
+
+### Development Environment
+- Editor: VSCode / Cursor / Vim / Other
+- Terminal: iTerm / Terminal.app / Other
+- Shell: bash / zsh / fish
+
+## Personal Shortcuts
+
+### Quick Commands
+
+```bash
+# Your commonly used aliases
+alias r2r-logs="gcloud compute ssh r2r-vm-new --zone=us-central1-a --command='docker logs r2r-deploy-r2r-1 --tail=100'"
+alias r2r-restart="gcloud compute ssh r2r-vm-new --zone=us-central1-a --command='cd /home/laptop/r2r-deploy && docker compose restart r2r'"
+```
+
+### Working Directory Preferences
+
+```bash
+# Default project path
+PROJECT_ROOT="/Users/laptop/mcp/r2r-docker-full"
+
+# Preferred git branch naming
+BRANCH_PREFIX="feature/"  # or "dev/", "fix/", etc.
+```
+
+## Personal Constraints
+
+### Things I Want Claude to Always Do
+- Example: "Always run tests before committing"
+- Example: "Explain complex regex patterns"
+- Example: "Use type hints in Python"
+
+### Things I Want Claude to Never Do
+- Example: "Never auto-format entire files without asking"
+- Example: "Never delete commented code"
+- Example: "Never commit without my review"
+
+## Local Development Notes
+
+### Environment-Specific Settings
+
+```bash
+# Local API endpoints (if different from production)
+LOCAL_R2R_URL="http://localhost:7272"
+LOCAL_MINIO_URL="http://localhost:9000"
+
+# Local credentials (NEVER commit this file!)
+MINIO_LOCAL_PASSWORD="your-local-password"
+```
+
+### Personal TODO List
+- [ ] Item 1
+- [ ] Item 2
+- [ ] Item 3
+
+## Custom Rules for This Project
+
+Add any project-specific rules that are personal to you:
+
+```markdown
+- When working on R2R configs, always diff before upload
+- Prefer testing locally before deploying to server
+- Keep a log of deployment changes in local_deployment_log.md
+```
+
+---
+
+**Remember:** This file should be named `CLAUDE.local.md` and will be automatically ignored by git.
+Never commit personal credentials or sensitive information.

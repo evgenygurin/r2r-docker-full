@@ -8,3 +8,8 @@ __pycache__/
 docker/env/*.env
 credentials/
 docker/user_configs/gcp-key.json
+
+# Claude Code local overrides
+CLAUDE.local.md
+.claude/local.md
+.claude/*.local.md
