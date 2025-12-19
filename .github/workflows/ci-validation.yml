@@ -12,7 +12,13 @@ on:
       - 'docker/user_configs/**'
 
 jobs:
+  setup:
+    uses: ./.github/workflows/reusable-setup.yml
+    with:
+      python-version: '3.11'
+
   validate-toml:
+    needs: setup
     name: Validate R2R Configuration
     runs-on: ubuntu-latest
 
@@ -44,7 +50,7 @@ jobs:
               content = f.read()
 
           # Find assignments to sensitive keys
-          pattern = r'(password|secret|key|token)\s*=\s*["\'](.+?)["\']'
+          pattern = r'(password|secret|key|token)\s*=\s*["'](.+?)["']'
           matches = re.finditer(pattern, content, re.IGNORECASE)
 
           hardcoded = []
