@@ -88,6 +88,13 @@ To run R2R locally:
 docker compose -f compose.full.yaml --profile postgres --profile minio up -d
 ```
 
+## Workflows
+
+Development workflows and best practices:
+@.claude/rules/workflows/testing.md
+@.claude/rules/workflows/troubleshooting.md
+@.claude/rules/workflows/git-workflow.md
+
 ## Additional Rules
 
 Security constraints and deployment procedures:
