@@ -98,8 +98,8 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
-            "MINIO_PASSWORD=\$(grep MINIO_ROOT_PASSWORD $DEPLOY_PATH/env/minio.env | cut -d'=' -f2) && \
-             sed -i \"s|\\\${AWS_SECRET_ACCESS_KEY}|\$MINIO_PASSWORD|\" $DEPLOY_PATH/user_configs/r2r.toml"
+            'MINIO_PASSWORD=$(grep MINIO_ROOT_PASSWORD '"$DEPLOY_PATH"'/env/minio.env | cut -d= -f2) && \
+             sed -i "s|\${AWS_SECRET_ACCESS_KEY}|$MINIO_PASSWORD|" '"$DEPLOY_PATH"'/user_configs/r2r.toml'
 
       - name: Restart R2R service
         run: |
@@ -109,24 +109,24 @@ jobs:
 
       - name: Wait for service restart
         run: |
-          sleep 45
+          sleep 75
 
       - name: Verify deployment
         run: |
-          # Retry health check up to 6 times (90 seconds total)
-          for i in {1..6}; do
-            echo "Health check attempt $i/6..."
+          # Retry health check up to 8 times (120 seconds total)
+          for i in {1..8}; do
+            echo "Health check attempt $i/8..."
             if ssh -o StrictHostKeyChecking=no $GCP_VM_USER@$GCP_VM_IP "curl -sf http://localhost:7272/v3/health"; then
               echo "✅ Deployment successful"
               exit 0
             fi
-            if [ $i -lt 6 ]; then
+            if [ $i -lt 8 ]; then
               echo "Service not ready, waiting 15s..."
               sleep 15
             fi
           done
 
-          echo "❌ Health check failed after 6 attempts"
+          echo "❌ Health check failed after 8 attempts"
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
             "docker logs r2r-deploy-r2r-1 --tail=100"
