@@ -18,9 +18,8 @@ on:
       - 'docker/user_configs/r2r.toml'
 
 env:
-  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  GCP_ZONE: us-central1-a
-  GCP_VM_NAME: r2r-vm-new
+  GCP_VM_USER: laptop
+  GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
   DEPLOY_PATH: /home/laptop/r2r-deploy
 
 jobs:
@@ -34,28 +33,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v3
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-
-      - name: Verify VM exists and is running
+      - name: Set up SSH
         run: |
-          VM_STATUS=$(gcloud compute instances describe $GCP_VM_NAME \
-            --zone=$GCP_ZONE \
-            --format="value(status)")
+          mkdir -p ~/.ssh
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ~/.ssh/gcp_key
+          chmod 600 ~/.ssh/gcp_key
+          ssh-keyscan -H $GCP_VM_IP >> ~/.ssh/known_hosts
 
-          if [ "$VM_STATUS" != "RUNNING" ]; then
-            echo "❌ VM $GCP_VM_NAME is not running (status: $VM_STATUS)"
-            exit 1
-          fi
-
-          echo "✅ VM is running"
+      - name: Verify VM is reachable
+        run: |
+          ssh -i ~/.ssh/gcp_key \
+            -o StrictHostKeyChecking=no \
+            $GCP_VM_USER@$GCP_VM_IP \
+            "echo '✅ VM is reachable'"
 
       - name: Validate TOML before deployment
         run: |
@@ -92,28 +82,20 @@ jobs:
 
       - name: Create backup on server
         run: |
-          gcloud compute ssh $GCP_VM_NAME \
-            --zone=$GCP_ZONE \
-            --tunnel-through-iap \
-            --quiet \
-            --command="cp $DEPLOY_PATH/user_configs/r2r.toml \
-                          $DEPLOY_PATH/user_configs/r2r.toml.backup-\$(date +%Y%m%d-%H%M%S)"
+          ssh -i ~/.ssh/gcp_key $GCP_VM_USER@$GCP_VM_IP \
+            "cp $DEPLOY_PATH/user_configs/r2r.toml \
+                $DEPLOY_PATH/user_configs/r2r.toml.backup-\$(date +%Y%m%d-%H%M%S)"
 
       - name: Upload configuration
         run: |
-          gcloud compute scp docker/user_configs/r2r.toml \
-            $GCP_VM_NAME:$DEPLOY_PATH/user_configs/r2r.toml \
-            --zone=$GCP_ZONE \
-            --tunnel-through-iap \
-            --quiet
+          scp -i ~/.ssh/gcp_key \
+            docker/user_configs/r2r.toml \
+            $GCP_VM_USER@$GCP_VM_IP:$DEPLOY_PATH/user_configs/r2r.toml
 
       - name: Restart R2R service
         run: |
-          gcloud compute ssh $GCP_VM_NAME \
-            --zone=$GCP_ZONE \
-            --tunnel-through-iap \
-            --quiet \
-            --command="cd $DEPLOY_PATH && docker compose restart r2r"
+          ssh -i ~/.ssh/gcp_key $GCP_VM_USER@$GCP_VM_IP \
+            "cd $DEPLOY_PATH && docker compose restart r2r"
 
       - name: Wait for service restart
         run: |
@@ -121,46 +103,31 @@ jobs:
 
       - name: Verify deployment
         run: |
-          gcloud compute ssh $GCP_VM_NAME \
-            --zone=$GCP_ZONE \
-            --tunnel-through-iap \
-            --quiet \
-            --command="curl -f http://localhost:7272/v3/health" || {
+          ssh -i ~/.ssh/gcp_key $GCP_VM_USER@$GCP_VM_IP \
+            "curl -f http://localhost:7272/v3/health" || {
               echo "❌ Health check failed"
-              gcloud compute ssh $GCP_VM_NAME \
-                --zone=$GCP_ZONE \
-                --tunnel-through-iap \
-                --quiet \
-                --command="docker logs r2r-deploy-r2r-1 --tail=100"
+              ssh -i ~/.ssh/gcp_key $GCP_VM_USER@$GCP_VM_IP \
+                "docker logs r2r-deploy-r2r-1 --tail=100"
               exit 1
             }
           echo "✅ Deployment successful"
 
       - name: Check for errors in logs
         run: |
-          gcloud compute ssh $GCP_VM_NAME \
-            --zone=$GCP_ZONE \
-            --tunnel-through-iap \
-            --quiet \
-            --command="docker logs r2r-deploy-r2r-1 --tail=50 | grep -i error || true"
+          ssh -i ~/.ssh/gcp_key $GCP_VM_USER@$GCP_VM_IP \
+            "docker logs r2r-deploy-r2r-1 --tail=50 | grep -i error || true"
 
       - name: Rollback on failure
         if: failure()
         run: |
           echo "🔄 Rolling back deployment..."
-
-          gcloud compute ssh $GCP_VM_NAME \
-            --zone=$GCP_ZONE \
-            --tunnel-through-iap \
-            --quiet \
-            --command="
-              LATEST_BACKUP=\$(ls -t $DEPLOY_PATH/user_configs/r2r.toml.backup-* | head -1)
-              if [ -f \"\$$LATEST_BACKUP\" ]; then
-                cp \"\$$LATEST_BACKUP\" $DEPLOY_PATH/user_configs/r2r.toml
-                cd $DEPLOY_PATH && docker compose restart r2r
-                echo '✅ Rollback completed'
-              else
-                echo '❌ No backup found for rollback'
-                exit 1
-              fi
-            "
+          ssh -i ~/.ssh/gcp_key $GCP_VM_USER@$GCP_VM_IP \
+            "LATEST_BACKUP=\$(ls -t $DEPLOY_PATH/user_configs/r2r.toml.backup-* | head -1) && \
+             if [ -f \"\$LATEST_BACKUP\" ]; then \
+               cp \"\$LATEST_BACKUP\" $DEPLOY_PATH/user_configs/r2r.toml && \
+               cd $DEPLOY_PATH && docker compose restart r2r && \
+               echo '✅ Rollback completed'; \
+             else \
+               echo '❌ No backup found for rollback'; \
+               exit 1; \
+             fi"
