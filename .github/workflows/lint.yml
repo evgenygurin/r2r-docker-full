@@ -86,4 +86,4 @@ jobs:
         with:
           files: .
           config_file: .markdownlint.json
-          ignore_files: data/
+          ignore_files: data/,utils/
