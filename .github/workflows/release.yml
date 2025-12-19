@@ -73,38 +73,56 @@ jobs:
         run: |
           echo "Generating changelog from $PREV_TAG to $TAG"
 
-          # Create changelog file
+          # Get all commits
+          git log $PREV_TAG..$TAG --pretty=format:"%s (%h)" > all_commits.txt
+
+          # Create changelog header
           cat > CHANGELOG.md << 'EOF'
           # Changelog
 
-          ## Features
           EOF
 
-          git log $PREV_TAG..$TAG --pretty=format:"- %s (%h)" --grep="^feat" >> CHANGELOG.md || true
+          # Features
+          FEATURES=$(grep "^feat" all_commits.txt | sed 's/^/- /' || true)
+          if [ -n "$FEATURES" ]; then
+            echo "## Features" >> CHANGELOG.md
+            echo "$FEATURES" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
 
-          echo "" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "## Bug Fixes" >> CHANGELOG.md
+          # Bug Fixes
+          FIXES=$(grep "^fix" all_commits.txt | sed 's/^/- /' || true)
+          if [ -n "$FIXES" ]; then
+            echo "## Bug Fixes" >> CHANGELOG.md
+            echo "$FIXES" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
 
-          git log $PREV_TAG..$TAG --pretty=format:"- %s (%h)" --grep="^fix" >> CHANGELOG.md || true
+          # Configuration
+          CONFIGS=$(grep "^config" all_commits.txt | sed 's/^/- /' || true)
+          if [ -n "$CONFIGS" ]; then
+            echo "## Configuration" >> CHANGELOG.md
+            echo "$CONFIGS" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
 
-          echo "" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "## Configuration" >> CHANGELOG.md
+          # Documentation
+          DOCS=$(grep "^docs" all_commits.txt | sed 's/^/- /' || true)
+          if [ -n "$DOCS" ]; then
+            echo "## Documentation" >> CHANGELOG.md
+            echo "$DOCS" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
 
-          git log $PREV_TAG..$TAG --pretty=format:"- %s (%h)" --grep="^config" >> CHANGELOG.md || true
+          # Other Changes (exclude feat, fix, config, docs)
+          OTHER=$(grep -vE "^(feat|fix|config|docs)" all_commits.txt | sed 's/^/- /' || true)
+          if [ -n "$OTHER" ]; then
+            echo "## Other Changes" >> CHANGELOG.md
+            echo "$OTHER" >> CHANGELOG.md
+          fi
 
-          echo "" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "## Documentation" >> CHANGELOG.md
-
-          git log $PREV_TAG..$TAG --pretty=format:"- %s (%h)" --grep="^docs" >> CHANGELOG.md || true
-
-          echo "" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo "## Other Changes" >> CHANGELOG.md
-
-          git log $PREV_TAG..$TAG --pretty=format:"- %s (%h)" --invert-grep --grep="^feat" --grep="^fix" --grep="^config" --grep="^docs" >> CHANGELOG.md || true
+          # Cleanup
+          rm all_commits.txt
 
           # Display changelog
           echo "📝 Generated changelog:"
