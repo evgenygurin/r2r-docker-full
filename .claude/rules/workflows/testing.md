@@ -34,15 +34,18 @@ curl -s http://localhost:7272/v3/health | jq
 When changing `r2r.toml`:
 
 **Step 1: Backup current config**
+
 ```bash
 cp docker/user_configs/r2r.toml docker/user_configs/r2r.toml.backup
 ```
 
 **Step 2: Make changes**
+
 - Edit `docker/user_configs/r2r.toml`
 - Change only ONE setting at a time
 
 **Step 3: Test locally**
+
 ```bash
 # Restart with new config
 docker compose -f compose.full.yaml restart r2r
@@ -58,11 +61,13 @@ curl http://localhost:7272/v3/health
 ```
 
 **Step 4: Verify the change worked**
+
 - Test the specific feature you changed
 - Check relevant logs
 - Verify no new errors appeared
 
 **Step 5: Document results**
+
 ```bash
 # If test passed:
 echo "✓ Config change successful: [describe what you changed]" >> test_log.txt
@@ -214,7 +219,7 @@ echo "Explain the code" >> test_queries.txt
 
 ## Troubleshooting Failed Tests
 
-### If local R2R won't start:
+### If local R2R won't start
 
 ```bash
 # 1. Check what's using the ports
@@ -233,7 +238,7 @@ docker compose -f compose.full.yaml down -v
 docker compose -f compose.full.yaml up -d
 ```
 
-### If config changes don't take effect:
+### If config changes don't take effect
 
 ```bash
 # 1. Verify config file was actually changed
@@ -247,9 +252,10 @@ docker compose up -d
 docker logs r2r-deploy-r2r-1 | grep -i "config\|loaded"
 ```
 
-### If tests pass locally but fail on production:
+### If tests pass locally but fail on production
 
 Common causes:
+
 1. **Environment differences** - Check env vars on server
 2. **File paths** - Verify paths exist on server
 3. **Permissions** - Check file/directory permissions
@@ -258,7 +264,7 @@ Common causes:
 
 ## Test Automation Scripts
 
-### Create reusable test script:
+### Create reusable test script
 
 ```bash
 # test_r2r.sh
@@ -309,6 +315,7 @@ echo "=== All tests passed! ==="
 ```
 
 Make it executable:
+
 ```bash
 chmod +x test_r2r.sh
 ./test_r2r.sh

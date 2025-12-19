@@ -11,10 +11,12 @@ This repository uses GitHub Actions for automated CI/CD.
 **File:** `.github/workflows/ci-validation.yml`
 
 **Triggers:**
+
 - Pull requests modifying `docker/user_configs/**`
 - Pushes to `main` branch
 
 **What it does:**
+
 1. Validates R2R TOML configuration syntax
 2. Checks for hardcoded secrets
 3. Ensures environment variable syntax is used
@@ -28,11 +30,13 @@ This repository uses GitHub Actions for automated CI/CD.
 **File:** `.github/workflows/security-scan.yml`
 
 **Triggers:**
+
 - All pull requests
 - Pushes to `main` branch
 - Weekly on Mondays at 9am UTC
 
 **What it does:**
+
 1. Scans for leaked secrets with Gitleaks
 2. Scans Docker configs with Trivy
 3. Checks Python dependencies for vulnerabilities
@@ -46,10 +50,12 @@ This repository uses GitHub Actions for automated CI/CD.
 **File:** `.github/workflows/docker-build.yml`
 
 **Triggers:**
+
 - Pull requests modifying `docker/**`
 - Pushes to `main` branch
 
 **What it does:**
+
 1. Validates Docker Compose syntax
 2. Builds and starts R2R stack
 3. Tests service health endpoints
@@ -64,10 +70,12 @@ This repository uses GitHub Actions for automated CI/CD.
 **File:** `.github/workflows/lint.yml`
 
 **Triggers:**
+
 - All pull requests
 - Pushes to `main` branch
 
 **What it does:**
+
 1. Lints YAML files (workflows, compose)
 2. Checks shell scripts with ShellCheck
 3. Lints Python code (ruff, black, isort)
@@ -82,10 +90,12 @@ This repository uses GitHub Actions for automated CI/CD.
 **File:** `.github/workflows/deploy-gcp.yml`
 
 **Triggers:**
+
 - Manual trigger via `workflow_dispatch`
 - Pushes to `main` modifying `docker/user_configs/r2r.toml`
 
 **What it does:**
+
 1. Validates configuration
 2. Creates backup on server
 3. Uploads new configuration
@@ -94,6 +104,7 @@ This repository uses GitHub Actions for automated CI/CD.
 6. Automatic rollback on failure
 
 **Required Secrets:**
+
 - `GCP_SA_KEY` - Service account JSON key
 - `GCP_PROJECT_ID` - GCP project ID
 
@@ -106,10 +117,12 @@ See `docs/github-secrets.md` for setup instructions.
 **File:** `.github/workflows/release.yml`
 
 **Triggers:**
+
 - Push of version tags (e.g., `v1.0.0`)
 - Manual trigger via `workflow_dispatch` with tag input
 
 **What it does:**
+
 1. Validates tag format (`v*.*.*`)
 2. Generates changelog from git commits
 3. Creates release artifacts:
@@ -174,6 +187,7 @@ act pull_request -W .github/workflows/docker-build.yml
 ### Workflow fails with "permission denied"
 
 Check that GitHub Actions has correct permissions:
+
 - Settings → Actions → General → Workflow permissions
 - Enable "Read and write permissions"
 

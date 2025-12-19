@@ -34,6 +34,7 @@ run: |
 ```
 
 **Untrusted inputs that MUST use env vars:**
+
 - `github.event.issue.title/body`
 - `github.event.pull_request.title/body/head.ref`
 - `github.event.comment.body`
@@ -42,7 +43,7 @@ run: |
 - `github.event.head_commit.author.name/email`
 - Any user-controlled data from issues, PRs, comments
 
-**Reference:** https://github.blog/security/vulnerability-research/how-to-catch-github-actions-workflow-injections-before-attackers-do/
+**Reference:** <https://github.blog/security/vulnerability-research/how-to-catch-github-actions-workflow-injections-before-attackers-do/>
 
 ---
 
@@ -51,6 +52,7 @@ run: |
 **ALWAYS apply these cost-saving measures:**
 
 ### 1. Use Path Filters
+
 ```yaml
 on:
   pull_request:
@@ -64,6 +66,7 @@ on:
 ```
 
 ### 2. Set Timeouts
+
 ```yaml
 jobs:
   build:
@@ -71,6 +74,7 @@ jobs:
 ```
 
 ### 3. Use Caching
+
 ```yaml
 - uses: actions/cache@v4
   with:
@@ -79,6 +83,7 @@ jobs:
 ```
 
 ### 4. Manual Triggers for Expensive Operations
+
 ```yaml
 on:
   workflow_dispatch:        # Manual trigger only
@@ -89,6 +94,7 @@ on:
 ```
 
 ### 5. Weekly Schedules, Not Daily
+
 ```yaml
 on:
   schedule:
@@ -102,6 +108,7 @@ on:
 ### When to Edit Workflows
 
 **Before editing ANY workflow:**
+
 1. Test changes locally with `act` if possible
 2. Review security implications (especially for untrusted inputs)
 3. Check for cost impact (new jobs, longer timeouts)
@@ -135,6 +142,7 @@ jobs:
 ### Job Structure
 
 **Each job MUST have:**
+
 - `timeout-minutes` - prevent runaway jobs
 - Clear `name` - describes what it does
 - Minimal steps - only what's necessary
@@ -203,33 +211,39 @@ run: |
 ## Project-Specific Workflows
 
 ### CI Validation (ci-validation.yml)
+
 **Triggers:** PRs touching `docker/user_configs/**`, pushes to main
 **Purpose:** Validate TOML config, detect hardcoded secrets
 **Uses:** Python script (not grep) for secret detection
 
 ### Security Scan (security-scan.yml)
+
 **Triggers:** All PRs, pushes to main, weekly Monday 9am
 **Purpose:** Gitleaks, Trivy, Python dependency scanning
 **Cost:** ~3-5 min, runs weekly to save costs
 
 ### Docker Build (docker-build.yml)
+
 **Triggers:** PRs touching `docker/**`, pushes to main
 **Purpose:** Build R2R stack, test health endpoints
 **Cost:** ~15-20 min, uses caching
 **Note:** Creates test env file for CI
 
 ### Lint (lint.yml)
+
 **Triggers:** All PRs, pushes to main
 **Purpose:** YAML, Shell, Python, Markdown linting
 **Note:** Python linting in advisory mode (`|| true`)
 
 ### Deploy to GCP (deploy-gcp.yml)
+
 **Triggers:** Manual (`workflow_dispatch`), r2r.toml changes
 **Purpose:** Deploy config to production with rollback
 **Secrets:** `GCP_SA_KEY`, `GCP_PROJECT_ID`
 **Safety:** Validates config, creates backup, auto-rollback on failure
 
 ### Release (release.yml)
+
 **Triggers:** Version tags (`v*.*.*`), manual
 **Purpose:** Create GitHub release with changelog
 **Artifacts:** r2r.toml, compose.full.yaml, DEPLOYMENT.md
@@ -242,6 +256,7 @@ run: |
 ### Workflow Fails to Start
 
 **Check:**
+
 1. YAML syntax: `yamllint .github/workflows/failing.yml`
 2. GitHub Actions permissions: Settings → Actions → General
 3. Workflow file location: Must be in `.github/workflows/`
@@ -249,6 +264,7 @@ run: |
 ### Workflow Runs Too Long
 
 **Fix:**
+
 1. Add/reduce `timeout-minutes`
 2. Check for infinite loops or hanging commands
 3. Review logs for slow steps
@@ -256,6 +272,7 @@ run: |
 ### Secrets Not Working
 
 **Fix:**
+
 1. Verify secret exists: Settings → Secrets → Actions
 2. Check secret name matches exactly
 3. For GCP_SA_KEY, verify it's valid JSON
@@ -263,6 +280,7 @@ run: |
 ### Cache Not Working
 
 **Debug:**
+
 ```yaml
 - name: Check cache
   uses: actions/cache@v4
@@ -278,6 +296,7 @@ run: |
 ### Manual Trigger Not Showing
 
 **Fix:**
+
 1. Workflow must be on default branch (main)
 2. Add `workflow_dispatch` to `on:` section
 3. Push workflow file to main first
@@ -325,6 +344,7 @@ act -j build-test
 ```
 
 **Naming convention:**
+
 - `<purpose>-<target>.yml` - e.g., `deploy-gcp.yml`
 - `reusable-<function>.yml` - for reusable workflows
 

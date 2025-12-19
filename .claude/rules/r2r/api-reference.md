@@ -13,6 +13,7 @@ API Version: v3
 **Endpoint:** `POST /v3/users/login`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/users/login \
   -H "Content-Type: application/json" \
@@ -20,6 +21,7 @@ curl -X POST http://localhost:7272/v3/users/login \
 ```
 
 **Python:**
+
 ```python
 from r2r import R2RClient
 
@@ -31,6 +33,7 @@ print(response["access_token"]["token"])
 ```
 
 **Response:**
+
 ```json
 {
   "access_token": {
@@ -49,6 +52,7 @@ print(response["access_token"]["token"])
 **Endpoint:** `POST /v3/users/register`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/users/register \
   -H "Content-Type: application/json" \
@@ -59,6 +63,7 @@ curl -X POST http://localhost:7272/v3/users/register \
 ```
 
 **Python:**
+
 ```python
 response = client.users.register(
     email="newuser@example.com",
@@ -69,12 +74,14 @@ response = client.users.register(
 ### Use Token in Requests
 
 **curl:**
+
 ```bash
 curl -H "Authorization: Bearer eyJhbGci..." \
   http://localhost:7272/v3/users/me
 ```
 
 **Python:**
+
 ```python
 # Token is automatically stored after login
 # All subsequent requests use it automatically
@@ -86,6 +93,7 @@ documents = client.documents.list()
 **Endpoint:** `POST /v3/users/refresh_access_token`
 
 **Python:**
+
 ```python
 new_token = client.users.refresh_access_token("YOUR_REFRESH_TOKEN")
 ```
@@ -95,12 +103,14 @@ new_token = client.users.refresh_access_token("YOUR_REFRESH_TOKEN")
 **Endpoint:** `GET /v3/users/me`
 
 **curl:**
+
 ```bash
 curl -H "Authorization: Bearer TOKEN" \
   http://localhost:7272/v3/users/me
 ```
 
 **Python:**
+
 ```python
 user_info = client.users.me()
 ```
@@ -114,6 +124,7 @@ user_info = client.users.me()
 **Endpoint:** `POST /v3/ingest_files`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/ingest_files \
   -H "Authorization: Bearer TOKEN" \
@@ -122,6 +133,7 @@ curl -X POST http://localhost:7272/v3/ingest_files \
 ```
 
 **Python:**
+
 ```python
 # Ingest from file path
 response = client.documents.create(
@@ -141,6 +153,7 @@ print(response["document_id"])
 ### Ingest Raw Text
 
 **Python:**
+
 ```python
 response = client.documents.create(
     raw_text="This is my document content. It can be multiple paragraphs.",
@@ -151,6 +164,7 @@ response = client.documents.create(
 ### Ingest Pre-Chunked Text
 
 **Python:**
+
 ```python
 response = client.documents.create(
     chunks=[
@@ -168,6 +182,7 @@ response = client.documents.create(
 - `hi-res` - High quality, slower (uses Unstructured with vision models for tables, images)
 
 **Example:**
+
 ```python
 # Fast mode for simple documents
 client.documents.create(
@@ -187,12 +202,14 @@ client.documents.create(
 **Endpoint:** `GET /v3/documents`
 
 **curl:**
+
 ```bash
 curl -X GET http://localhost:7272/v3/documents \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 # List all documents
 documents = client.documents.list()
@@ -207,6 +224,7 @@ documents = client.documents.list(
 ```
 
 **Response:**
+
 ```json
 {
   "results": [
@@ -230,12 +248,14 @@ documents = client.documents.list(
 **Endpoint:** `GET /v3/documents/{document_id}`
 
 **curl:**
+
 ```bash
 curl -X GET http://localhost:7272/v3/documents/{document_id} \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 document = client.documents.retrieve(document_id="uuid-here")
 ```
@@ -245,6 +265,7 @@ document = client.documents.retrieve(document_id="uuid-here")
 **Endpoint:** `PATCH /v3/documents/{document_id}`
 
 **curl:**
+
 ```bash
 curl -X PATCH http://localhost:7272/v3/documents/{document_id} \
   -H "Authorization: Bearer TOKEN" \
@@ -253,6 +274,7 @@ curl -X PATCH http://localhost:7272/v3/documents/{document_id} \
 ```
 
 **Python:**
+
 ```python
 response = client.documents.update(
     document_id="uuid-here",
@@ -265,12 +287,14 @@ response = client.documents.update(
 **Endpoint:** `DELETE /v3/documents/{document_id}`
 
 **curl:**
+
 ```bash
 curl -X DELETE http://localhost:7272/v3/documents/{document_id} \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 response = client.documents.delete(document_id="uuid-here")
 ```
@@ -284,6 +308,7 @@ response = client.documents.delete(document_id="uuid-here")
 **Endpoint:** `POST /v3/search`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/search \
   -H "Content-Type: application/json" \
@@ -299,6 +324,7 @@ curl -X POST http://localhost:7272/v3/search \
 ```
 
 **Python:**
+
 ```python
 # Basic search (semantic only)
 results = client.retrieval.search(
@@ -335,11 +361,13 @@ results = client.retrieval.search(
 ```
 
 **Search Modes:**
+
 - `basic` - Semantic search only (vector similarity)
 - `advanced` - Hybrid search (semantic + full-text with smart defaults)
 - `custom` - Full control via `search_settings`
 
 **Response:**
+
 ```json
 {
   "results": [
@@ -362,6 +390,7 @@ results = client.retrieval.search(
 **Endpoint:** `POST /v3/rag`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/rag \
   -H "Content-Type: application/json" \
@@ -381,6 +410,7 @@ curl -X POST http://localhost:7272/v3/rag \
 ```
 
 **Python:**
+
 ```python
 # Basic RAG with default settings
 response = client.retrieval.rag(
@@ -412,12 +442,14 @@ for chunk in response:
 ```
 
 **Available Models:**
+
 - `openai/gpt-4o` - Best quality
 - `openai/gpt-4o-mini` - Fast and cost-effective
 - `anthropic/claude-3-opus-20240229` - High quality
 - `anthropic/claude-3-haiku-20240307` - Fast and cheap
 
 **Response (non-streaming):**
+
 ```json
 {
   "completion": "Machine learning is a branch of artificial intelligence...",
@@ -436,6 +468,7 @@ for chunk in response:
 **Endpoint:** `POST /v3/agent`
 
 **Python:**
+
 ```python
 # Agentic RAG with file knowledge tools
 response = client.retrieval.agent(
@@ -459,12 +492,14 @@ response = client.retrieval.agent(
 ```
 
 **Available RAG Tools:**
+
 - `search_file_knowledge` - Search ingested documents
 - `get_file_content` - Retrieve full document
 - `web_search` - Search the web
 - `web_scrape` - Scrape websites
 
 **Available Research Tools:**
+
 - `reasoning` - Chain-of-thought reasoning
 - `python_executor` - Execute Python code
 
@@ -477,12 +512,14 @@ response = client.retrieval.agent(
 **Endpoint:** `POST /v3/collections/{collection_id}/graphs/pull`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/collections/{collection_id}/graphs/pull \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 # Extract entities and relationships from collection
 response = client.graphs.pull(collection_id="uuid-here")
@@ -493,12 +530,14 @@ response = client.graphs.pull(collection_id="uuid-here")
 **Endpoint:** `GET /v3/collections/{collection_id}/graphs/entities`
 
 **curl:**
+
 ```bash
 curl -X GET http://localhost:7272/v3/collections/{collection_id}/graphs/entities \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 # Get all entities
 entities = client.graphs.list_entities(collection_id="uuid-here")
@@ -512,6 +551,7 @@ entities = client.graphs.list_entities(
 ```
 
 **Response:**
+
 ```json
 {
   "entities": [
@@ -531,12 +571,14 @@ entities = client.graphs.list_entities(
 **Endpoint:** `GET /v3/collections/{collection_id}/graphs/relationships`
 
 **curl:**
+
 ```bash
 curl -X GET http://localhost:7272/v3/collections/{collection_id}/graphs/relationships \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 # Get all relationships
 relationships = client.graphs.list_relationships(collection_id="uuid-here")
@@ -549,6 +591,7 @@ relationships = client.graphs.list_relationships(
 ```
 
 **Response:**
+
 ```json
 {
   "relationships": [
@@ -566,6 +609,7 @@ relationships = client.graphs.list_relationships(
 ### Build Graph Communities
 
 **Python:**
+
 ```python
 # Build communities (clustering of entities)
 response = client.graphs.build(
@@ -580,11 +624,13 @@ response = client.graphs.build(
 ### List Communities
 
 **Python:**
+
 ```python
 communities = client.graphs.list_communities(collection_id="uuid-here")
 ```
 
 **Response:**
+
 ```json
 {
   "communities": [
@@ -601,6 +647,7 @@ communities = client.graphs.list_communities(collection_id="uuid-here")
 ### RAG with Knowledge Graph Enhancement
 
 **Python:**
+
 ```python
 # Standard RAG
 response = client.retrieval.rag(
@@ -618,6 +665,7 @@ response = client.retrieval.rag(
 ```
 
 **Knowledge Graph Search Types:**
+
 - `local` - Search within specific communities
 - `global` - Search across entire graph
 
@@ -630,6 +678,7 @@ response = client.retrieval.rag(
 **Endpoint:** `POST /v3/collections`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/collections \
   -H "Content-Type: application/json" \
@@ -641,6 +690,7 @@ curl -X POST http://localhost:7272/v3/collections \
 ```
 
 **Python:**
+
 ```python
 collection = client.collections.create(
     name="Research Papers",
@@ -653,12 +703,14 @@ collection = client.collections.create(
 **Endpoint:** `GET /v3/collections`
 
 **curl:**
+
 ```bash
 curl -X GET http://localhost:7272/v3/collections \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 collections = client.collections.list()
 ```
@@ -668,6 +720,7 @@ collections = client.collections.list()
 **Endpoint:** `GET /v3/collections/{collection_id}`
 
 **Python:**
+
 ```python
 collection = client.collections.retrieve(collection_id="uuid-here")
 ```
@@ -677,6 +730,7 @@ collection = client.collections.retrieve(collection_id="uuid-here")
 **Endpoint:** `PATCH /v3/collections/{collection_id}`
 
 **Python:**
+
 ```python
 response = client.collections.update(
     collection_id="uuid-here",
@@ -690,12 +744,14 @@ response = client.collections.update(
 **Endpoint:** `DELETE /v3/collections/{collection_id}`
 
 **curl:**
+
 ```bash
 curl -X DELETE http://localhost:7272/v3/collections/{collection_id} \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 response = client.collections.delete(collection_id="uuid-here")
 ```
@@ -705,6 +761,7 @@ response = client.collections.delete(collection_id="uuid-here")
 **Endpoint:** `POST /v3/collections/{collection_id}/documents`
 
 **curl:**
+
 ```bash
 curl -X POST http://localhost:7272/v3/collections/{collection_id}/documents \
   -H "Authorization: Bearer TOKEN" \
@@ -712,6 +769,7 @@ curl -X POST http://localhost:7272/v3/collections/{collection_id}/documents \
 ```
 
 **Python:**
+
 ```python
 # Add existing document
 response = client.collections.add_document(
@@ -731,6 +789,7 @@ response = client.documents.create(
 **Endpoint:** `GET /v3/collections/{collection_id}/documents`
 
 **Python:**
+
 ```python
 documents = client.collections.list_documents(collection_id="uuid-here")
 ```
@@ -740,6 +799,7 @@ documents = client.collections.list_documents(collection_id="uuid-here")
 **Endpoint:** `DELETE /v3/collections/{collection_id}/documents/{document_id}`
 
 **Python:**
+
 ```python
 response = client.collections.remove_document(
     collection_id="collection-uuid",
@@ -756,16 +816,19 @@ response = client.collections.remove_document(
 **Endpoint:** `GET /v3/health`
 
 **curl:**
+
 ```bash
 curl http://localhost:7272/v3/health
 ```
 
 **Python:**
+
 ```python
 health = client.system.health()
 ```
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -783,12 +846,14 @@ health = client.system.health()
 **Endpoint:** `GET /v3/system/settings`
 
 **curl:**
+
 ```bash
 curl -X GET http://localhost:7272/v3/system/settings \
   -H "Authorization: Bearer TOKEN"
 ```
 
 **Python:**
+
 ```python
 settings = client.system.settings()
 ```
@@ -798,6 +863,7 @@ settings = client.system.settings()
 **Endpoint:** `GET /v3/system/logs`
 
 **curl:**
+
 ```bash
 # Get last 10 logs
 curl -X GET "http://localhost:7272/v3/system/logs?limit=10" \
@@ -809,6 +875,7 @@ curl -X GET "http://localhost:7272/v3/system/logs?log_type_filter=error&limit=20
 ```
 
 **Python:**
+
 ```python
 # Get recent logs
 logs = client.system.logs(limit=10)
@@ -825,11 +892,13 @@ logs = client.system.logs(
 **Endpoint:** `GET /v3/system/statistics`
 
 **Python:**
+
 ```python
 stats = client.system.statistics()
 ```
 
 **Response:**
+
 ```json
 {
   "documents_count": 150,
@@ -966,16 +1035,16 @@ results = client.retrieval.search(
 
 ## Common Metadata Filters
 
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `$eq` | Equal | `{"year": {"$eq": 2024}}` |
-| `$ne` | Not equal | `{"status": {"$ne": "draft"}}` |
-| `$gt` | Greater than | `{"score": {"$gt": 0.8}}` |
-| `$gte` | Greater or equal | `{"year": {"$gte": 2023}}` |
-| `$lt` | Less than | `{"price": {"$lt": 100}}` |
-| `$lte` | Less or equal | `{"price": {"$lte": 50}}` |
-| `$in` | In array | `{"category": {"$in": ["research", "blog"]}}` |
-| `$nin` | Not in array | `{"status": {"$nin": ["draft", "archived"]}}` |
+|  Operator  |  Description  |  Example  |
+| ---------- | ------------- | --------- |
+|  `$eq`  |  Equal  |  `{"year": {"$eq": 2024}}`  |
+|  `$ne`  |  Not equal  |  `{"status": {"$ne": "draft"}}`  |
+|  `$gt`  |  Greater than  |  `{"score": {"$gt": 0.8}}`  |
+|  `$gte`  |  Greater or equal  |  `{"year": {"$gte": 2023}}`  |
+|  `$lt`  |  Less than  |  `{"price": {"$lt": 100}}`  |
+|  `$lte`  |  Less or equal  |  `{"price": {"$lte": 50}}`  |
+|  `$in`  |  In array  |  `{"category": {"$in": ["research", "blog"]}}`  |
+|  `$nin`  |  Not in array  |  `{"status": {"$nin": ["draft", "archived"]}}`  |
 
 ---
 
@@ -999,14 +1068,14 @@ monthly_limit = 10000    # Monthly request limit
 
 ## Error Codes
 
-| Status Code | Meaning | Example |
-|-------------|---------|---------|
-| 200 | Success | Request completed successfully |
-| 400 | Bad Request | Invalid JSON, missing required fields |
-| 401 | Unauthorized | Missing or invalid authentication token |
-| 403 | Forbidden | Insufficient permissions |
-| 404 | Not Found | Document/collection not found |
-| 413 | Payload Too Large | File exceeds upload size limit |
-| 429 | Too Many Requests | Rate limit exceeded |
-| 500 | Internal Server Error | Server-side error (check logs) |
-| 503 | Service Unavailable | Service temporarily down |
+|  Status Code  |  Meaning  |  Example  |
+| ------------- | --------- | --------- |
+|  200  |  Success  |  Request completed successfully  |
+|  400  |  Bad Request  |  Invalid JSON, missing required fields  |
+|  401  |  Unauthorized  |  Missing or invalid authentication token  |
+|  403  |  Forbidden  |  Insufficient permissions  |
+|  404  |  Not Found  |  Document/collection not found  |
+|  413  |  Payload Too Large  |  File exceeds upload size limit  |
+|  429  |  Too Many Requests  |  Rate limit exceeded  |
+|  500  |  Internal Server Error  |  Server-side error (check logs)  |
+|  503  |  Service Unavailable  |  Service temporarily down  |

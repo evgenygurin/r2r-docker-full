@@ -3,6 +3,7 @@
 ## Configuration Management
 
 ### 1. Never Edit Directly on Server
+
 ```bash
 # ❌ BAD - Editing on server
 gcloud compute ssh r2r-vm-new --zone=us-central1-a
@@ -15,16 +16,19 @@ gcloud compute scp docker/user_configs/r2r.toml \
 ```
 
 ### 2. Always Backup Before Changes
+
 ```bash
 cp docker/user_configs/r2r.toml docker/user_configs/r2r.toml.backup.$(date +%Y%m%d)
 ```
 
 ### 3. Validate Before Upload
+
 ```bash
 python -c "import toml; toml.load('docker/user_configs/r2r.toml')" || echo "Invalid TOML!"
 ```
 
 ### 4. Test Locally First
+
 ```bash
 # Start local R2R with new config
 docker compose -f compose.full.yaml --profile postgres --profile minio up -d
@@ -51,6 +55,7 @@ client.documents.create(
 ```
 
 **When to use:**
+
 - `fast` - Large batches, simple documents, testing
 - `hi-res` - Complex PDFs, tables, images, production
 
@@ -213,11 +218,13 @@ response = client.retrieval.rag(
 ### When to Use Knowledge Graphs
 
 **Use for:**
+
 - Complex documents with many entities (research papers, reports)
 - Questions requiring relational understanding
 - Multi-hop reasoning tasks
 
 **Don't use for:**
+
 - Simple Q&A
 - Code documentation
 - Short documents

@@ -35,6 +35,7 @@ docker compose -f compose.full.yaml down
 ```
 
 **If local test fails:**
+
 - Fix the issue locally
 - Re-test until working
 - Only then deploy to server
@@ -197,6 +198,7 @@ gcloud compute ssh r2r-vm-new --zone=us-central1-a --command="
 ```
 
 Watch for:
+
 - ERROR level messages
 - Python exceptions/tracebacks
 - Configuration validation errors

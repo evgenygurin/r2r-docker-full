@@ -15,17 +15,22 @@
 4. **Validate:** `python -c "import toml; toml.load('docker/user_configs/r2r.toml')"`
 5. **Test locally:** Start local R2R and verify change works
 6. **Upload:**
+
    ```bash
    gcloud compute scp docker/user_configs/r2r.toml \
      r2r-vm-new:/home/laptop/r2r-deploy/user_configs/r2r.toml \
      --zone=us-central1-a
    ```
+
 7. **Restart:**
+
    ```bash
    gcloud compute ssh r2r-vm-new --zone=us-central1-a \
      --command="cd /home/laptop/r2r-deploy && docker compose restart r2r"
    ```
+
 8. **Verify logs:**
+
    ```bash
    gcloud compute ssh r2r-vm-new --zone=us-central1-a \
      --command="docker logs r2r-deploy-r2r-1 --tail=50"
@@ -55,6 +60,7 @@
 ## Quick Diagnostics
 
 ### Is R2R healthy?
+
 ```bash
 # Local
 curl -s http://localhost:7272/v3/health | jq .status
@@ -67,17 +73,20 @@ gcloud compute ssh r2r-vm-new --zone=us-central1-a \
 **Expected:** `"healthy"`
 
 ### Are containers running?
+
 ```bash
 docker ps --format 'table {{.Names}}\t{{.Status}}'
 ```
 
 **Expected:** All containers show "Up" status:
+
 - `r2r-deploy-r2r-1`
 - `r2r-deploy-postgres-1`
 - `r2r-deploy-minio-1`
 - `r2r-deploy-unstructured-1`
 
 ### Any errors in last 100 lines?
+
 ```bash
 docker logs r2r-deploy-r2r-1 --tail=100 | grep -iE "error|exception|failed"
 ```
@@ -85,6 +94,7 @@ docker logs r2r-deploy-r2r-1 --tail=100 | grep -iE "error|exception|failed"
 **Expected:** No output (or only known warnings)
 
 ### Are GitHub Actions workflows passing?
+
 ```bash
 # Check workflow status
 gh run list --limit 5
@@ -106,6 +116,7 @@ gh run view
 **Cause:** Unstructured provider doesn't support `recursive`
 
 **Fix:**
+
 ```toml
 [ingestion]
 chunking_strategy = "by_title"  # NOT "recursive"
@@ -116,6 +127,7 @@ chunking_strategy = "by_title"  # NOT "recursive"
 **Cause:** Using `provider = "s3"` without complete configuration
 
 **Fix:**
+
 ```toml
 [file]
 provider = "s3"
@@ -126,6 +138,7 @@ aws_secret_access_key = "${MINIO_ROOT_PASSWORD}"
 ```
 
 **Get credentials:**
+
 ```bash
 gcloud compute ssh r2r-vm-new --zone=us-central1-a \
   --command="cat /home/laptop/r2r-deploy/env/minio.env"
@@ -136,6 +149,7 @@ gcloud compute ssh r2r-vm-new --zone=us-central1-a \
 **Cause:** Changed `base_model` without updating `base_dimension`
 
 **Fix:** Update dimension AND re-ingest all documents
+
 ```toml
 [embedding]
 base_model = "openai/text-embedding-3-small"
@@ -145,12 +159,14 @@ base_dimension = 1536  # MUST match model
 ### ❌ Container won't start
 
 **Diagnosis:**
+
 ```bash
 docker ps -a | grep r2r-deploy-r2r-1
 docker logs r2r-deploy-r2r-1 --tail=100
 ```
 
 **Common causes:**
+
 - Invalid TOML → Validate: `python -c "import toml; toml.load('r2r.toml')"`
 - Port 7272 in use → Check: `lsof -i :7272` → Kill process
 - PostgreSQL not ready → Wait 30 seconds after `docker compose up`
@@ -158,6 +174,7 @@ docker logs r2r-deploy-r2r-1 --tail=100
 ### ❌ Search returns no results
 
 **Diagnosis:**
+
 ```bash
 # Check documents exist
 curl http://localhost:7272/v3/documents | jq
@@ -171,6 +188,7 @@ docker logs r2r-deploy-r2r-1 | grep -i "embedding"
 ### ❌ Upload fails "File too large"
 
 **Fix:**
+
 ```toml
 [app.max_upload_size_by_type]
 pdf = 50000000  # 50MB (default is 30MB)
@@ -179,7 +197,7 @@ pdf = 50000000  # 50MB (default is 30MB)
 ## File Locations
 
 | What | Local Path | Server Path |
-|------|-----------|-------------|
+| ------ | ----------- | ------------- |
 | **Config to edit** | `docker/user_configs/r2r.toml` | `/home/laptop/r2r-deploy/user_configs/r2r.toml` |
 | Reference configs | `data/R2R/py/all_possible_config.toml` | N/A |
 | Local env vars | `.env` | `/home/laptop/r2r-deploy/env/r2r.env` |
@@ -188,6 +206,7 @@ pdf = 50000000  # 50MB (default is 30MB)
 ## Environment Variables
 
 **Required for R2R:**
+
 ```bash
 OPENAI_API_KEY=sk-...           # For embeddings and LLM
 ANTHROPIC_API_KEY=sk-ant-...    # Optional, for Claude models
@@ -195,6 +214,7 @@ POSTGRES_PASSWORD=...           # Database password
 ```
 
 **MinIO (server only):**
+
 ```bash
 MINIO_ROOT_USER=...
 MINIO_ROOT_PASSWORD=...
@@ -218,6 +238,7 @@ docker compose -f compose.full.yaml down -v
 ## Project-Specific Details
 
 ### Tech Stack (R2R v3.x specifics)
+
 - **Vector DB:** PostgreSQL with pgvector extension
 - **Storage:** MinIO (S3-compatible) at `http://minio:9000`
 - **Parsing:** Unstructured with vision models for tables/images
@@ -225,11 +246,13 @@ docker compose -f compose.full.yaml down -v
 - **Orchestration:** Hatchet for distributed task execution
 
 ### Ports
-- R2R API: `7272` (http://localhost:7272)
+
+- R2R API: `7272` (<http://localhost:7272>)
 - MinIO: `9000` (storage), `9001` (console)
 - PostgreSQL: `5432`
 
 ### Production Server
+
 - **VM:** `r2r-vm-new`
 - **Zone:** `us-central1-a`
 - **Access:** `gcloud compute ssh r2r-vm-new --zone=us-central1-a`
@@ -237,6 +260,7 @@ docker compose -f compose.full.yaml down -v
 ## Advanced Debugging
 
 ### Access PostgreSQL
+
 ```bash
 docker exec -it r2r-deploy-postgres-1 psql -U postgres -d r2r
 
@@ -247,11 +271,13 @@ SELECT COUNT(*) FROM chunks;
 ```
 
 ### Watch logs in real-time
+
 ```bash
 docker logs -f r2r-deploy-r2r-1
 ```
 
 ### Check resource usage
+
 ```bash
 docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 ```
@@ -261,6 +287,7 @@ docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 Comprehensive guides and references:
 
 ### Workflows & CI/CD
+
 - @.claude/rules/workflows/github-actions.md - GitHub Actions security & best practices
 - @.claude/rules/workflows/testing.md - Testing procedures
 - @.claude/rules/workflows/troubleshooting.md - Systematic debugging framework
@@ -268,12 +295,14 @@ Comprehensive guides and references:
 - @docs/workflows.md - Complete workflows documentation (for reference)
 
 ### R2R Framework
+
 - @.claude/rules/r2r/configuration.md - Complete config reference
 - @.claude/rules/r2r/api-reference.md - API endpoints with curl/Python examples
 - @.claude/rules/r2r/troubleshooting.md - Extended troubleshooting guide
 - @.claude/rules/r2r/best-practices.md - Production best practices
 
 ### Operations
+
 - @.claude/rules/security.md - Security constraints
 - @.claude/rules/deployment.md - Production deployment workflow
 - @.claude/rules/gcloud-reference.md - GCloud commands and container names

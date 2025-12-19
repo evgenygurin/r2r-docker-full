@@ -73,6 +73,7 @@ git branch -d feature/new-embedding-model
 - `docs/` - Documentation updates
 
 Examples:
+
 - `feature/add-minio-storage`
 - `fix/postgres-connection`
 - `config/update-chunking-strategy`
@@ -140,7 +141,7 @@ docker/user_configs/gcp-key.json
 CLAUDE.local.md
 ```
 
-### If you accidentally stage sensitive file:
+### If you accidentally stage sensitive file
 
 ```bash
 # Unstage immediately
@@ -153,7 +154,7 @@ git status
 cat .gitignore | grep <file-pattern>
 ```
 
-### If you accidentally commit sensitive file:
+### If you accidentally commit sensitive file
 
 ```bash
 # If NOT pushed yet:

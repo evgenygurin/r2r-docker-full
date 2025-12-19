@@ -7,12 +7,14 @@ When something goes wrong, follow this systematic approach:
 ### 1. Define the Problem
 
 **Ask:**
+
 - What exactly is failing? (specific error, behavior)
 - When did it start failing? (after what change?)
 - Does it fail consistently or intermittently?
 - Does it fail locally, on server, or both?
 
 **Document:**
+
 ```text
 Problem: [Specific description]
 Started: [When/after what change]
@@ -23,6 +25,7 @@ Location: [Local/Server/Both]
 ### 2. Check the Obvious
 
 **Before deep investigation:**
+
 - [ ] Is the service actually running? (`docker ps`)
 - [ ] Are there recent errors in logs? (`docker logs --tail=100`)
 - [ ] Was configuration recently changed?
@@ -55,6 +58,7 @@ cat docker/user_configs/r2r.toml > current_config.txt
 **Narrow down the cause:**
 
 **Is it a specific component?**
+
 ```bash
 # Test each service individually
 docker logs r2r-deploy-r2r-1 --tail=50        # R2R API
@@ -64,12 +68,14 @@ docker logs r2r-deploy-unstructured-1 --tail=50  # Parser
 ```
 
 **Is it configuration-related?**
+
 ```bash
 # Compare with known-good config
 diff docker/user_configs/r2r.toml.backup docker/user_configs/r2r.toml
 ```
 
 **Is it environment-related?**
+
 ```bash
 # Check environment variables
 docker exec r2r-deploy-r2r-1 env | grep -E "API|KEY|PASSWORD|URL"
@@ -80,6 +86,7 @@ docker exec r2r-deploy-r2r-1 env | grep -E "API|KEY|PASSWORD|URL"
 Based on gathered info, hypothesize what's wrong:
 
 **Example hypotheses:**
+
 - "PostgreSQL connection is failing because password changed"
 - "MinIO is out of disk space"
 - "Embedding model is incompatible with new config"
@@ -128,10 +135,12 @@ docker logs r2r-deploy-r2r-1 | grep -i "config\|validation\|error"
 ### Issue: R2R Container Won't Start
 
 **Symptoms:**
+
 - Container exits immediately
 - `docker ps` doesn't show r2r-deploy-r2r-1
 
 **Diagnostic steps:**
+
 ```bash
 # 1. Check exit status and error
 docker ps -a | grep r2r-deploy-r2r-1
@@ -145,6 +154,7 @@ docker logs r2r-deploy-r2r-1 --tail=100
 ```
 
 **Solutions:**
+
 ```bash
 # If config error: Validate config syntax
 python -c "import toml; toml.load('docker/user_configs/r2r.toml')"
@@ -162,10 +172,12 @@ docker compose up r2r -d
 ### Issue: Search Returns No Results
 
 **Symptoms:**
+
 - Search queries return empty results
 - Documents were ingested successfully
 
 **Diagnostic steps:**
+
 ```bash
 # 1. Verify documents are ingested
 curl http://localhost:7272/v3/documents
@@ -183,6 +195,7 @@ cat docker/user_configs/r2r.toml | grep -A5 "\[embedding\]"
 ```
 
 **Solutions:**
+
 ```bash
 # If no embeddings: Check embedding config
 # Verify base_model is correct
@@ -196,11 +209,13 @@ cat docker/user_configs/r2r.toml | grep -A5 "\[embedding\]"
 ### Issue: High Memory Usage
 
 **Symptoms:**
+
 - Docker containers using excessive RAM
 - System becoming slow
 - OOM (Out of Memory) errors
 
 **Diagnostic steps:**
+
 ```bash
 # 1. Check which container uses most memory
 docker stats --no-stream | sort -k4 -h
@@ -213,6 +228,7 @@ docker logs r2r-deploy-r2r-1 | grep -i "memory\|oom"
 ```
 
 **Solutions:**
+
 ```bash
 # Limit container memory in docker-compose.yaml:
 services:
@@ -229,10 +245,12 @@ docker compose restart
 ### Issue: Slow Ingestion
 
 **Symptoms:**
+
 - Document ingestion takes very long
 - Timeouts during upload
 
 **Diagnostic steps:**
+
 ```bash
 # 1. Check which step is slow
 docker logs r2r-deploy-r2r-1 -f
@@ -250,6 +268,7 @@ curl -X POST http://localhost:7272/v3/ingest_files \
 ```
 
 **Solutions:**
+
 ```bash
 # If parsing is slow: Adjust chunk size
 # In r2r.toml:
@@ -266,11 +285,13 @@ docker exec r2r-deploy-postgres-1 pg_stat_statements
 ### Issue: MinIO Connection Errors
 
 **Symptoms:**
+
 - "Failed to connect to S3"
 - "Bucket not found"
 - File upload errors
 
 **Diagnostic steps:**
+
 ```bash
 # 1. Check MinIO is running
 docker ps | grep minio
@@ -286,6 +307,7 @@ curl http://localhost:9000/minio/health/live
 ```
 
 **Solutions:**
+
 ```bash
 # If bucket doesn't exist: Create it
 docker exec r2r-deploy-minio-1 mc mb local/r2r

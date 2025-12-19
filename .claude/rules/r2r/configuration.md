@@ -44,6 +44,7 @@ reasoning_llm = "anthropic/claude-3-opus-20240229" # Reasoning
 ```
 
 **Common Issues:**
+
 - Upload fails → Check `max_upload_size_by_type` for file extension
 - User quota exceeded → Adjust `default_max_documents_per_user`
 
@@ -65,20 +66,23 @@ max_backoff = 64.0
 ```
 
 **Supported Providers:**
+
 - `litellm` - Universal LLM proxy (OpenAI, Anthropic, HuggingFace, etc.)
 - `openai` - Direct OpenAI embeddings
 - `ollama` - Local embeddings
 
 **Common Models:**
-| Model | Dimension | Use Case |
-|-------|-----------|----------|
-| `openai/text-embedding-3-small` | 512-1536 (default 1536) | General, cost-effective |
-| `openai/text-embedding-3-large` | 256-3072 (default 3072) | High quality, expensive |
-| `vertex_ai/text-embedding-004` | 768 | Google Cloud |
-| `sentence-transformers/all-MiniLM-L6-v2` | 384 | Local, fast |
-| `BAAI/bge-small-en-v1.5` | 384 | Code optimized |
+
+|  Model  |  Dimension  |  Use Case  |
+| ------- | ----------- | ---------- |
+|  `openai/text-embedding-3-small`  |  512-1536 (default 1536)  |  General, cost-effective  |
+|  `openai/text-embedding-3-large`  |  256-3072 (default 3072)  |  High quality, expensive  |
+|  `vertex_ai/text-embedding-004`  |  768  |  Google Cloud  |
+|  `sentence-transformers/all-MiniLM-L6-v2`  |  384  |  Local, fast  |
+|  `BAAI/bge-small-en-v1.5`  |  384  |  Code optimized  |
 
 **Critical Rules:**
+
 - `base_dimension` MUST match model's actual dimension
 - Changing embedding model requires re-ingesting all documents
 - `batch_size` affects memory usage (default: 1 for stability)
@@ -118,6 +122,7 @@ request_timeout = 120.0
 ```
 
 **Popular Models:**
+
 - `openai/gpt-4o` - Best quality (expensive)
 - `openai/gpt-4o-mini` - Fast and cheap
 - `anthropic/claude-3-opus-20240229` - Best reasoning
@@ -164,21 +169,25 @@ parser_overrides = {}
 ```
 
 **Providers:**
+
 - `unstructured_local` - Uses Unstructured container for advanced parsing
 - `r2r` - Built-in R2R parsers (simpler, faster)
 
 **Chunking Strategies:**
+
 - `by_title` - **RECOMMENDED** with Unstructured (uses document structure)
 - `recursive` - ❌ NOT SUPPORTED by Unstructured provider
 - `character` - Simple character-based splitting
 - `token` - Token-aware splitting
 
 **Common Issues:**
+
 - "unrecognized chunking strategy" → Use `by_title` instead of `recursive`
 - Large PDF fails → Increase `app.max_upload_size_by_type.pdf`
 - Slow ingestion → Disable `automatic_extraction` or set `skip_document_summary = true`
 
 **Chunk Enrichment:**
+
 ```toml
 [ingestion.chunk_enrichment_settings]
   enable_chunk_enrichment = false  # Expensive LLM calls!
@@ -212,6 +221,7 @@ collection_summary_prompt = "collection_summary"
 ```
 
 **Performance Tuning:**
+
 ```toml
 [database.postgres_configuration_settings]
   max_connections = 256
@@ -235,6 +245,7 @@ collection_summary_prompt = "collection_summary"
 ```
 
 **Rate Limiting:**
+
 ```toml
 [database.limits]
   global_per_min = 60
@@ -289,6 +300,7 @@ collection_summary_prompt = "collection_summary"
 ```
 
 **For Code Documentation:**
+
 ```toml
 [database.graph_creation_settings]
   entity_types = [
@@ -357,16 +369,19 @@ aws_secret_access_key = "YOUR_MINIO_PASSWORD"
 ```
 
 **Providers:**
+
 - `postgres` - Store files in database (simple, limited scale)
 - `s3` - S3-compatible storage (MinIO, AWS S3, production)
 
 **MinIO Setup:**
+
 - Container: `r2r-deploy-minio-1`
 - Credentials: `/home/laptop/r2r-deploy/env/minio.env`
-- Console: http://localhost:9001
+- Console: <http://localhost:9001>
 - Default credentials in env file: `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`
 
 **AWS S3 Setup:**
+
 ```toml
 [file]
 provider = "s3"
@@ -391,6 +406,7 @@ default_admin_password = "change_me_immediately"  # CHANGE THIS!
 ```
 
 **Security Rules:**
+
 - **ALWAYS** change default admin password in production
 - **ALWAYS** set `require_authentication = true` in production
 - Consider email verification for public deployments
@@ -412,6 +428,7 @@ tools = ["search_file_knowledge", "content"]
 ```
 
 **Available Tools:**
+
 - `search_file_knowledge` - Search ingested documents
 - `get_file_content` - Retrieve full document
 - `web_search` - Search the web (requires API key)
@@ -431,6 +448,7 @@ kg_concurrency_limit = 4
 ```
 
 **Providers:**
+
 - `simple` - In-process orchestration (local/testing)
 - `hatchet` - Distributed task engine (production)
 
@@ -469,6 +487,7 @@ sender_name = "R2R System"
 ```
 
 **Providers:**
+
 - `console` - Print to console (testing)
 - `console_mock` - Mock provider (no emails sent)
 - `smtp` - Standard SMTP server
@@ -478,28 +497,33 @@ sender_name = "R2R System"
 ## Configuration Workflow
 
 1. **Edit Local Config**
+
    ```bash
    nano /Users/laptop/mcp/r2r-docker-full/docker/user_configs/r2r.toml
    ```
 
 2. **Validate Syntax**
+
    ```bash
    python -c "import toml; toml.load('docker/user_configs/r2r.toml')"
    ```
 
 3. **Upload to Server**
+
    ```bash
    gcloud compute scp docker/user_configs/r2r.toml \
      r2r-vm-new:/home/laptop/r2r-deploy/user_configs/r2r.toml --zone=us-central1-a
    ```
 
 4. **Restart R2R**
+
    ```bash
    gcloud compute ssh r2r-vm-new --zone=us-central1-a \
      --command="cd /home/laptop/r2r-deploy && docker compose restart r2r"
    ```
 
 5. **Verify**
+
    ```bash
    gcloud compute ssh r2r-vm-new --zone=us-central1-a \
      --command="docker logs r2r-deploy-r2r-1 --tail=50"
@@ -521,6 +545,7 @@ default_admin_password = "${R2R_ADMIN_PASSWORD}"
 ```
 
 Environment variables set in:
+
 - Local: `.env` file in project root
 - Server: `/home/laptop/r2r-deploy/env/r2r.env` and `minio.env`
 
@@ -540,6 +565,7 @@ Environment variables set in:
 ## Common Configuration Patterns
 
 ### Minimal (Testing)
+
 ```toml
 [app]
 project_name = "r2r-test"
@@ -559,6 +585,7 @@ require_authentication = false
 ```
 
 ### Production (Code Documentation)
+
 ```toml
 [app]
 quality_llm = "anthropic/claude-3-opus-20240229"
@@ -588,6 +615,7 @@ provider = "s3"
 ```
 
 ### Production (Research Papers)
+
 ```toml
 [embedding]
 base_model = "openai/text-embedding-3-large"
