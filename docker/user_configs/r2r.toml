@@ -160,6 +160,7 @@ max_backoff = 64.0
 provider = "s3"
 bucket_name = "r2r"
 endpoint_url = "http://minio:9000"
+region_name = "us-east-1"
 aws_access_key_id = "minio"
 aws_secret_access_key = "${MINIO_ROOT_PASSWORD}"
 [ingestion]
