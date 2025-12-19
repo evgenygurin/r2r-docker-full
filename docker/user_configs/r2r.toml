@@ -160,13 +160,12 @@ max_backoff = 64.0
 provider = "s3"
 bucket_name = "r2r"
 endpoint_url = "http://minio:9000"
-region_name = "us-east-1"
 aws_access_key_id = "minio"
-aws_secret_access_key = "${MINIO_ROOT_PASSWORD}"
+aws_secret_access_key = "ys08/VAJdJiUde0usaGCWLyjSdcicF29zVva5qW997Q="
 [ingestion]
 provider = "unstructured_local"   
 excluded_parsers = []             
-strategy = "auto"
+strategy = "auto"                 
 chunking_strategy = "by_title"
 chunk_size = 512              
 new_after_n_chars = 512       
@@ -175,7 +174,7 @@ combine_under_n_chars = 128
 chunk_overlap = 64
 overlap = 64   
 document_summary_model = "vertex_ai/gemini-2.5-flash"   
-skip_document_summary = false
+skip_document_summary = false                           
 document_summary_system_prompt = "system"
 document_summary_task_prompt = "summary"
 chunks_for_document_summary = 128
