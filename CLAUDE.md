@@ -38,6 +38,7 @@
 - **NEVER** commit secrets to git (@.claude/rules/security.md)
 - **NEVER** edit `.env` files on server
 - **NEVER** log credentials in code
+- **NEVER** use untrusted inputs directly in GitHub Actions `run:` - use `env:` (@.claude/rules/workflows/github-actions.md)
 - **ALWAYS** use environment variables for sensitive data
 - Before git commit: `git diff --staged | grep -i "password\|secret\|key"`
 
@@ -82,6 +83,21 @@ docker logs r2r-deploy-r2r-1 --tail=100 | grep -iE "error|exception|failed"
 ```
 
 **Expected:** No output (or only known warnings)
+
+### Are GitHub Actions workflows passing?
+```bash
+# Check workflow status
+gh run list --limit 5
+
+# View latest workflow run
+gh run view
+
+# Or via badge in README.md
+```
+
+**Expected:** All workflows passing (green checkmarks)
+
+---
 
 ## Common R2R Errors & Fixes
 
@@ -244,10 +260,12 @@ docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"
 
 Comprehensive guides and references:
 
-### Workflows
+### Workflows & CI/CD
+- @.claude/rules/workflows/github-actions.md - GitHub Actions security & best practices
 - @.claude/rules/workflows/testing.md - Testing procedures
 - @.claude/rules/workflows/troubleshooting.md - Systematic debugging framework
 - @.claude/rules/workflows/git-workflow.md - Commit conventions
+- @docs/workflows.md - Complete workflows documentation (for reference)
 
 ### R2R Framework
 - @.claude/rules/r2r/configuration.md - Complete config reference
