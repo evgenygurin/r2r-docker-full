@@ -10,6 +10,7 @@ jobs:
   yaml-lint:
     name: Lint YAML Files
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -26,6 +27,7 @@ jobs:
   shell-check:
     name: Check Shell Scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -40,6 +42,7 @@ jobs:
   python-lint:
     name: Lint Python Code
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -56,19 +59,23 @@ jobs:
 
       - name: Run ruff
         run: |
+          # Advisory mode: linting failures don't block CI (cost optimization)
           ruff check utils/ || true
 
       - name: Check code formatting with black
         run: |
+          # Advisory mode: formatting issues don't block CI (cost optimization)
           black --check utils/ || true
 
       - name: Check import sorting
         run: |
+          # Advisory mode: import issues don't block CI (cost optimization)
           isort --check-only utils/ || true
 
   markdown-lint:
     name: Lint Markdown
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
