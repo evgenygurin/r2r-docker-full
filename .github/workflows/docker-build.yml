@@ -34,6 +34,7 @@ jobs:
     name: Build and Test R2R Stack
     runs-on: ubuntu-latest
     needs: validate-compose
+    timeout-minutes: 20
 
     steps:
       - name: Checkout code
@@ -54,6 +55,12 @@ jobs:
         run: |
           mkdir -p docker/env
 
+          cat > docker/env/r2r.env << EOF
+          # CI test credentials - DO NOT USE IN PRODUCTION
+          OPENAI_API_KEY=sk-test-fake-key-for-ci
+          ANTHROPIC_API_KEY=sk-ant-test-fake-key-for-ci
+          EOF
+
           cat > docker/env/postgres.env << EOF
           POSTGRES_PASSWORD=test_password_12345
           POSTGRES_USER=postgres
@@ -69,6 +76,9 @@ jobs:
         run: |
           cd docker
           docker compose -f compose.full.yaml --profile postgres --profile minio up -d
+
+      - name: List running containers
+        run: docker ps --format 'table {{.Names}}\t{{.Status}}'
 
       - name: Wait for services
         run: |
