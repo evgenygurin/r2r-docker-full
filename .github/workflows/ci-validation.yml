@@ -1,0 +1,44 @@
+name: CI - Configuration Validation
+
+on:
+  pull_request:
+    paths:
+      - 'docker/user_configs/**'
+      - '.github/workflows/ci-validation.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/user_configs/**'
+
+jobs:
+  validate-toml:
+    name: Validate R2R Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install toml tomli tomli-w
+
+      - name: Validate r2r.toml syntax
+        run: |
+          python -c "import toml; toml.load('docker/user_configs/r2r.toml')"
+
+      - name: Check for hardcoded secrets
+        run: |
+          if grep -E "(password|secret|key|token)\s*=\s*['"](?!\\$\{)" docker/user_configs/r2r.toml; then
+            echo "❌ ERROR: Found hardcoded secrets in r2r.toml"
+            echo "Use environment variable syntax: \${VAR_NAME}"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
