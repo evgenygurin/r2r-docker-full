@@ -38,6 +38,9 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          echo "SSH key first line:" && head -1 ~/.ssh/id_rsa
+          echo "SSH key last line:" && tail -1 ~/.ssh/id_rsa
+          echo "SSH key line count:" && wc -l ~/.ssh/id_rsa
           ssh-keyscan -H $GCP_VM_IP >> ~/.ssh/known_hosts
 
       - name: Verify VM is reachable
