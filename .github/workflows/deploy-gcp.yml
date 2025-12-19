@@ -27,6 +27,7 @@ jobs:
   deploy:
     name: Deploy to GCP VM
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
@@ -40,6 +41,19 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           export_default_credentials: true
 
+      - name: Verify VM exists and is running
+        run: |
+          VM_STATUS=$(gcloud compute instances describe $GCP_VM_NAME \
+            --zone=$GCP_ZONE \
+            --format="value(status)")
+
+          if [ "$VM_STATUS" != "RUNNING" ]; then
+            echo "❌ VM $GCP_VM_NAME is not running (status: $VM_STATUS)"
+            exit 1
+          fi
+
+          echo "✅ VM is running"
+
       - name: Validate TOML before deployment
         run: |
           pip install toml
@@ -48,11 +62,30 @@ jobs:
 
       - name: Check for secrets in config
         run: |
-          if grep -E "(password|secret|key|token)\s*=\s*['\"](?!\\\\\$$\{{)" docker/user_configs/r2r.toml; then
-            echo "❌ ERROR: Found hardcoded secrets"
-            exit 1
-          fi
-          echo "✅ No hardcoded secrets"
+          python3 << 'EOF'
+          import re
+          import sys
+
+          with open('docker/user_configs/r2r.toml', 'r') as f:
+              content = f.read()
+
+          pattern = r'(password|secret|key|token)\s*=\s*["\'](.+?)["\']'
+          matches = re.finditer(pattern, content, re.IGNORECASE)
+
+          hardcoded = []
+          for match in matches:
+              value = match.group(2)
+              if not value.startswith('${') and value != '':
+                  hardcoded.append(match.group(0))
+
+          if hardcoded:
+              print("❌ ERROR: Found hardcoded secrets")
+              for secret in hardcoded:
+                  print(f"  - {secret}")
+              sys.exit(1)
+
+          print("✅ No hardcoded secrets")
+          EOF
 
       - name: Create backup on server
         run: |
