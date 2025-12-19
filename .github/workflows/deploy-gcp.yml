@@ -94,6 +94,8 @@ jobs:
         run: |
           gcloud compute ssh $GCP_VM_NAME \
             --zone=$GCP_ZONE \
+            --tunnel-through-iap \
+            --quiet \
             --command="cp $DEPLOY_PATH/user_configs/r2r.toml \
                           $DEPLOY_PATH/user_configs/r2r.toml.backup-\$(date +%Y%m%d-%H%M%S)"
 
@@ -101,12 +103,16 @@ jobs:
         run: |
           gcloud compute scp docker/user_configs/r2r.toml \
             $GCP_VM_NAME:$DEPLOY_PATH/user_configs/r2r.toml \
-            --zone=$GCP_ZONE
+            --zone=$GCP_ZONE \
+            --tunnel-through-iap \
+            --quiet
 
       - name: Restart R2R service
         run: |
           gcloud compute ssh $GCP_VM_NAME \
             --zone=$GCP_ZONE \
+            --tunnel-through-iap \
+            --quiet \
             --command="cd $DEPLOY_PATH && docker compose restart r2r"
 
       - name: Wait for service restart
@@ -117,10 +123,14 @@ jobs:
         run: |
           gcloud compute ssh $GCP_VM_NAME \
             --zone=$GCP_ZONE \
+            --tunnel-through-iap \
+            --quiet \
             --command="curl -f http://localhost:7272/v3/health" || {
               echo "❌ Health check failed"
               gcloud compute ssh $GCP_VM_NAME \
                 --zone=$GCP_ZONE \
+                --tunnel-through-iap \
+                --quiet \
                 --command="docker logs r2r-deploy-r2r-1 --tail=100"
               exit 1
             }
@@ -130,6 +140,8 @@ jobs:
         run: |
           gcloud compute ssh $GCP_VM_NAME \
             --zone=$GCP_ZONE \
+            --tunnel-through-iap \
+            --quiet \
             --command="docker logs r2r-deploy-r2r-1 --tail=50 | grep -i error || true"
 
       - name: Rollback on failure
@@ -139,6 +151,8 @@ jobs:
 
           gcloud compute ssh $GCP_VM_NAME \
             --zone=$GCP_ZONE \
+            --tunnel-through-iap \
+            --quiet \
             --command="
               LATEST_BACKUP=\$(ls -t $DEPLOY_PATH/user_configs/r2r.toml.backup-* | head -1)
               if [ -f \"\$$LATEST_BACKUP\" ]; then
