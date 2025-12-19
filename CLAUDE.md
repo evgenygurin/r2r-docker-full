@@ -1,98 +1,94 @@
-# R2R Docker Full - Claude Code Instructions
+# R2R Docker Full - Project Memory
 
-## CRITICAL: Configuration Changes Workflow
+## Tech Stack
+- R2R v3.x (RAG framework)
+- Docker Compose
+- GCloud (VM: r2r-vm-new, zone: us-central1-a)
+- MinIO (S3-compatible storage)
+- PostgreSQL, Unstructured, Hatchet
 
-**ALWAYS follow this workflow when troubleshooting R2R errors:**
+## Critical Constraints
 
-1. **FIRST** - Look for solutions in `/Users/laptop/mcp/r2r-docker-full/data/R2R/`
-   - `py/all_possible_config.toml` - all possible configuration options
-   - `py/r2r/r2r.toml` - default R2R config
-   - `deployment/k8s/manifests/examples/` - example configs
-   - `llms.txt` - documentation
+- **NEVER** edit configuration files directly on the server
+- **NEVER** skip the 5-step troubleshooting workflow
+- **NEVER** restart R2R without checking logs afterward
+- **NEVER** commit secrets or credentials to git
+- **ALWAYS** edit local config first, then upload to server
 
-2. **THEN** - Edit local config: `/Users/laptop/mcp/r2r-docker-full/docker/user_configs/r2r.toml`
+## R2R Configuration Workflow
 
-3. **THEN** - Upload to server:
-   ```bash
-   gcloud compute scp /Users/laptop/mcp/r2r-docker-full/docker/user_configs/r2r.toml \
-     r2r-vm-new:/home/laptop/r2r-deploy/user_configs/r2r.toml --zone=us-central1-a
-   ```
+When troubleshooting R2R errors or making config changes, follow this exact sequence:
 
-4. **THEN** - Restart R2R:
-   ```bash
-   gcloud compute ssh r2r-vm-new --zone=us-central1-a \
-     --command="cd /home/laptop/r2r-deploy && docker compose restart r2r"
-   ```
+**Step 1: Research** - Check reference files first:
+- `data/R2R/py/all_possible_config.toml` - all available options
+- `data/R2R/py/r2r/r2r.toml` - default config
+- `data/R2R/llms.txt` - documentation
+- `data/R2R/deployment/k8s/manifests/examples/` - examples
 
-5. **THEN** - Check logs:
-   ```bash
-   gcloud compute ssh r2r-vm-new --zone=us-central1-a \
-     --command="docker logs r2r-deploy-r2r-1 --tail=50"
-   ```
+**Step 2: Edit Local** - Modify `docker/user_configs/r2r.toml`
 
-## Key Configuration Files
+**Step 3: Upload** - Use gcloud scp to deploy:
+```bash
+gcloud compute scp docker/user_configs/r2r.toml \
+  r2r-vm-new:/home/laptop/r2r-deploy/user_configs/r2r.toml \
+  --zone=us-central1-a
+```
 
-| Location | Purpose |
-|----------|---------|
-| `docker/user_configs/r2r.toml` | Local R2R config (edit this) |
-| `data/R2R/py/all_possible_config.toml` | Reference for all options |
-| Server: `/home/laptop/r2r-deploy/user_configs/r2r.toml` | Server R2R config |
-| Server: `/home/laptop/r2r-deploy/env/r2r.env` | Environment variables |
-| Server: `/home/laptop/r2r-deploy/env/minio.env` | MinIO credentials |
+**Step 4: Restart** - Restart the R2R container:
+```bash
+gcloud compute ssh r2r-vm-new --zone=us-central1-a \
+  --command="cd /home/laptop/r2r-deploy && docker compose restart r2r"
+```
 
-## Common Issues & Solutions
+**Step 5: Verify** - ALWAYS check logs for errors:
+```bash
+gcloud compute ssh r2r-vm-new --zone=us-central1-a \
+  --command="docker logs r2r-deploy-r2r-1 --tail=50"
+```
+
+**If restart fails:** Read full logs with `--tail=200` and look for error messages.
+
+## Common R2R Issues
 
 ### "unrecognized chunking strategy 'recursive'"
-**Cause:** Unstructured doesn't support `recursive` strategy
-**Solution:** Change `chunking_strategy = "by_title"` in `[ingestion]` section
+- **Cause:** Unstructured doesn't support `recursive` strategy
+- **Fix:** Set `chunking_strategy = "by_title"` in `[ingestion]` section
 
 ### "S3 bucket name is required"
-**Cause:** Using S3 provider without bucket config
-**Solution:** Add to `[file]` section:
-```toml
-[file]
-provider = "s3"
-bucket_name = "r2r"
-endpoint_url = "http://minio:9000"
-aws_access_key_id = "minio"
-aws_secret_access_key = "YOUR_MINIO_PASSWORD"
-```
+- **Cause:** S3 provider configured without bucket
+- **Fix:** Add complete `[file]` configuration:
+  ```toml
+  [file]
+  provider = "s3"
+  bucket_name = "r2r"
+  endpoint_url = "http://minio:9000"
+  aws_access_key_id = "minio"
+  aws_secret_access_key = "YOUR_MINIO_PASSWORD"
+  ```
+- **Note:** MinIO credentials are in `/home/laptop/r2r-deploy/env/minio.env` on server
 
-### MinIO Credentials
-Located in `/home/laptop/r2r-deploy/env/minio.env`:
-- `MINIO_ROOT_USER` = access key
-- `MINIO_ROOT_PASSWORD` = secret key
+## File Structure
 
-## GCloud Commands
+| Local Path | Purpose |
+|------------|---------|
+| `docker/user_configs/r2r.toml` | **EDIT THIS** - your R2R config |
+| `data/R2R/py/all_possible_config.toml` | Reference: all config options |
+| `.env` | Local environment variables |
 
+| Server Path | Purpose |
+|-------------|---------|
+| `/home/laptop/r2r-deploy/user_configs/r2r.toml` | Deployed R2R config |
+| `/home/laptop/r2r-deploy/env/r2r.env` | Server environment vars |
+| `/home/laptop/r2r-deploy/env/minio.env` | MinIO credentials |
+
+## Local Development
+
+To run R2R locally:
 ```bash
-# SSH to VM
-gcloud compute ssh r2r-vm-new --zone=us-central1-a
-
-# Copy file to VM
-gcloud compute scp LOCAL_PATH r2r-vm-new:REMOTE_PATH --zone=us-central1-a
-
-# Run command on VM
-gcloud compute ssh r2r-vm-new --zone=us-central1-a --command="COMMAND"
-
-# View container logs
-gcloud compute ssh r2r-vm-new --zone=us-central1-a \
-  --command="docker logs CONTAINER_NAME --tail=100"
-
-# List containers
-gcloud compute ssh r2r-vm-new --zone=us-central1-a \
-  --command="docker ps --format 'table {{.Names}}\t{{.Status}}'"
+docker compose -f compose.full.yaml --profile postgres --profile minio up -d
 ```
 
-## Container Names
+## Reference Documentation
 
-- `r2r-deploy-r2r-1` - Main R2R API
-- `r2r-deploy-unstructured-1` - Document parsing
-- `r2r-deploy-postgres-1` - Database
-- `r2r-deploy-minio-1` - S3-compatible storage
-- `r2r-deploy-hatchet-engine-1` - Task orchestration
-
-docker compose -f compose.full.yaml --profile postgres up --profile minio -d
-docker compose -f compose.full.yaml --profile postgres up --profile minio -d
-docker compose -f compose.full.yaml --profile postgres up --profile minio -d
-docker compose -f compose.full.yaml --profile postgres up --profile minio -d
+For GCloud commands, container names, and other reference info:
+@.claude/rules/gcloud-reference.md
