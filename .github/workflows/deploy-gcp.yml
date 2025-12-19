@@ -36,7 +36,7 @@ jobs:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > ~/.ssh/gcp_key
+          echo "${{ secrets.GCP_SSH_PRIVATE_KEY_B64 }}" | base64 -d > ~/.ssh/gcp_key
           chmod 600 ~/.ssh/gcp_key
           ssh-keyscan -H $GCP_VM_IP >> ~/.ssh/known_hosts
 
