@@ -95,6 +95,14 @@ Development workflows and best practices:
 @.claude/rules/workflows/troubleshooting.md
 @.claude/rules/workflows/git-workflow.md
 
+## R2R Framework
+
+R2R v3.x-specific rules and references:
+@.claude/rules/r2r/configuration.md
+@.claude/rules/r2r/api-reference.md
+@.claude/rules/r2r/troubleshooting.md
+@.claude/rules/r2r/best-practices.md
+
 ## Additional Rules
 
 Security constraints and deployment procedures:
