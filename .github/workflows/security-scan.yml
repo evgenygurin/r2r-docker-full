@@ -9,6 +9,10 @@ on:
     # Run every Monday at 9am UTC
     - cron: '0 9 * * 1'
 
+permissions:
+  contents: read
+  security-events: write  # Required for uploading SARIF results
+
 jobs:
   secret-scan:
     name: Scan for Secrets
