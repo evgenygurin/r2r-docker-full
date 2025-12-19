@@ -102,20 +102,28 @@ jobs:
 
       - name: Wait for service restart
         run: |
-          sleep 30
+          sleep 45
 
       - name: Verify deployment
         run: |
+          # Retry health check up to 6 times (90 seconds total)
+          for i in {1..6}; do
+            echo "Health check attempt $i/6..."
+            if ssh -o StrictHostKeyChecking=no $GCP_VM_USER@$GCP_VM_IP "curl -sf http://localhost:7272/v3/health"; then
+              echo "✅ Deployment successful"
+              exit 0
+            fi
+            if [ $i -lt 6 ]; then
+              echo "Service not ready, waiting 15s..."
+              sleep 15
+            fi
+          done
+
+          echo "❌ Health check failed after 6 attempts"
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
-            "curl -f http://localhost:7272/v3/health" || {
-              echo "❌ Health check failed"
-              ssh -o StrictHostKeyChecking=no \
-                $GCP_VM_USER@$GCP_VM_IP \
-                "docker logs r2r-deploy-r2r-1 --tail=100"
-              exit 1
-            }
-          echo "✅ Deployment successful"
+            "docker logs r2r-deploy-r2r-1 --tail=100"
+          exit 1
 
       - name: Check for errors in logs
         run: |
