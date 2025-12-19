@@ -21,3 +21,4 @@ CLAUDE.md.backup.*
 # Working docs/plans
 docs/
 !docs/github-secrets.md
+!docs/workflows.md
