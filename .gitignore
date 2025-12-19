@@ -13,3 +13,10 @@ docker/user_configs/gcp-key.json
 CLAUDE.local.md
 .claude/local.md
 .claude/*.local.md
+
+# Backup files
+*.backup.*
+CLAUDE.md.backup.*
+
+# Working docs/plans
+docs/
