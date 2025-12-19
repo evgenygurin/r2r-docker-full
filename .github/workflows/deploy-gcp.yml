@@ -1,0 +1,116 @@
+name: Deploy to GCP
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/user_configs/r2r.toml'
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_ZONE: us-central1-a
+  GCP_VM_NAME: r2r-vm-new
+  DEPLOY_PATH: /home/laptop/r2r-deploy
+
+jobs:
+  deploy:
+    name: Deploy to GCP VM
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'production' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
+
+      - name: Validate TOML before deployment
+        run: |
+          pip install toml
+          python -c "import toml; toml.load('docker/user_configs/r2r.toml')"
+          echo "✅ TOML validation passed"
+
+      - name: Check for secrets in config
+        run: |
+          if grep -E "(password|secret|key|token)\s*=\s*['\"](?!\\\\\$$\{{)" docker/user_configs/r2r.toml; then
+            echo "❌ ERROR: Found hardcoded secrets"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets"
+
+      - name: Create backup on server
+        run: |
+          gcloud compute ssh $GCP_VM_NAME \
+            --zone=$GCP_ZONE \
+            --command="cp $DEPLOY_PATH/user_configs/r2r.toml \
+                          $DEPLOY_PATH/user_configs/r2r.toml.backup-\$(date +%Y%m%d-%H%M%S)"
+
+      - name: Upload configuration
+        run: |
+          gcloud compute scp docker/user_configs/r2r.toml \
+            $GCP_VM_NAME:$DEPLOY_PATH/user_configs/r2r.toml \
+            --zone=$GCP_ZONE
+
+      - name: Restart R2R service
+        run: |
+          gcloud compute ssh $GCP_VM_NAME \
+            --zone=$GCP_ZONE \
+            --command="cd $DEPLOY_PATH && docker compose restart r2r"
+
+      - name: Wait for service restart
+        run: |
+          sleep 30
+
+      - name: Verify deployment
+        run: |
+          gcloud compute ssh $GCP_VM_NAME \
+            --zone=$GCP_ZONE \
+            --command="curl -f http://localhost:7272/v3/health" || {
+              echo "❌ Health check failed"
+              gcloud compute ssh $GCP_VM_NAME \
+                --zone=$GCP_ZONE \
+                --command="docker logs r2r-deploy-r2r-1 --tail=100"
+              exit 1
+            }
+          echo "✅ Deployment successful"
+
+      - name: Check for errors in logs
+        run: |
+          gcloud compute ssh $GCP_VM_NAME \
+            --zone=$GCP_ZONE \
+            --command="docker logs r2r-deploy-r2r-1 --tail=50 | grep -i error || true"
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Rolling back deployment..."
+
+          gcloud compute ssh $GCP_VM_NAME \
+            --zone=$GCP_ZONE \
+            --command="
+              LATEST_BACKUP=\$(ls -t $DEPLOY_PATH/user_configs/r2r.toml.backup-* | head -1)
+              if [ -f \"\$$LATEST_BACKUP\" ]; then
+                cp \"\$$LATEST_BACKUP\" $DEPLOY_PATH/user_configs/r2r.toml
+                cd $DEPLOY_PATH && docker compose restart r2r
+                echo '✅ Rollback completed'
+              else
+                echo '❌ No backup found for rollback'
+                exit 1
+              fi
+            "
