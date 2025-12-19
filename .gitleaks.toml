@@ -1,0 +1,23 @@
+title = "R2R Docker Full - Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "env-file"
+description = "Detect .env files"
+regex = '''(\.env|env\.local)'''
+path = '''(^|/)\.env'''
+
+[[rules]]
+id = "docker-env"
+description = "Detect docker env files"
+path = '''docker/env/.*\.env$'''
+
+[allowlist]
+description = "Allowlist for false positives"
+paths = [
+  '''.gitignore$''',
+  '''.gitleaks.toml$''',
+  '''README.md$'''
+]
