@@ -1,0 +1,57 @@
+name: Bug Report
+description: Report a bug or issue
+title: "[BUG]: "
+labels: ["bug", "triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: Clear description of the bug
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: How to reproduce this bug
+      placeholder: |
+        1. Start R2R with...
+        2. Run command...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant logs (remove any secrets!)
+      render: shell
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Local (Docker Compose)
+        - GCP Production
+        - Other
+    validations:
+      required: true

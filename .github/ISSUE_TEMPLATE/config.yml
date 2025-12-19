@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/evgenygurin/r2r-docker-full/blob/main/CLAUDE.md
+    about: Check project documentation first
+
+  - name: R2R Official Docs
+    url: https://r2r-docs.sciphi.ai/
+    about: R2R framework documentation
