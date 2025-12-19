@@ -72,8 +72,8 @@ max_backoff = 64.0
 **Common Models:**
 | Model | Dimension | Use Case |
 |-------|-----------|----------|
-| `openai/text-embedding-3-small` | 1536 | General, cost-effective |
-| `openai/text-embedding-3-large` | 3072 | High quality, expensive |
+| `openai/text-embedding-3-small` | 512-1536 (default 1536) | General, cost-effective |
+| `openai/text-embedding-3-large` | 256-3072 (default 3072) | High quality, expensive |
 | `vertex_ai/text-embedding-004` | 768 | Google Cloud |
 | `sentence-transformers/all-MiniLM-L6-v2` | 384 | Local, fast |
 | `BAAI/bge-small-en-v1.5` | 384 | Code optimized |
@@ -83,6 +83,19 @@ max_backoff = 64.0
 - Changing embedding model requires re-ingesting all documents
 - `batch_size` affects memory usage (default: 1 for stability)
 - Higher `batch_size` = faster ingestion but more memory
+
+### [completion_embedding] - Completion Embeddings
+
+```toml
+[completion_embedding]
+provider = "litellm"
+base_model = "openai/text-embedding-3-small"
+base_dimension = 512
+batch_size = 1
+concurrent_request_limit = 256
+```
+
+Usually mirrors `[embedding]` settings. Override only if completion requires different embedding model.
 
 ### [completion] - LLM Generation
 
@@ -119,7 +132,7 @@ request_timeout = 120.0
 provider = "unstructured_local"  # or "r2r"
 excluded_parsers = []
 strategy = "auto"
-chunking_strategy = "by_title"  # NOT "recursive" with Unstructured!
+chunking_strategy = "by_title"  # Override! Default is "recursive" which fails with Unstructured
 chunk_size = 1024
 chunk_overlap = 512
 new_after_n_chars = 512
@@ -389,7 +402,7 @@ default_admin_password = "change_me_immediately"  # CHANGE THIS!
 [agent]
 rag_agent_static_prompt = "rag_agent"
 rag_agent_dynamic_prompt = "dynamic_rag_agent"
-tools = ["search_file_knowledge", "get_file_content"]
+tools = ["search_file_knowledge", "content"]
 
 [agent.generation_config]
   model = "openai/gpt-4o"
