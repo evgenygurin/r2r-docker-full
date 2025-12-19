@@ -35,13 +35,13 @@ fi
 echo 'Hatchet API key has been saved successfully'
 echo 'Token length:' ${#TOKEN}
 echo 'Token (first 20 chars):' ${TOKEN:0:20}
-echo 'Token structure:' $(echo $TOKEN | awk -F. '{print NF-1}') 'parts'
+echo 'Token structure:' "$(echo "$TOKEN" | awk -F. '{print NF-1}')" 'parts'
 
 # Check each part of the token
 for i in 1 2 3; do
     PART=$(echo $TOKEN | cut -d. -f$i)
     echo 'Part' $i 'length:' ${#PART}
-    echo 'Part' $i 'base64 check:' $(echo $PART | base64 -d >/dev/null 2>&1 && echo 'Valid' || echo 'Invalid')
+    echo 'Part' $i 'base64 check:' "$(echo "$PART" | base64 -d >/dev/null 2>&1 && echo 'Valid' || echo 'Invalid')"
 done
 
 # Final validation attempt
