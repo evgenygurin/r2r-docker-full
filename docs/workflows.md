@@ -101,6 +101,48 @@ See `docs/github-secrets.md` for setup instructions.
 
 ---
 
+### Release
+
+**File:** `.github/workflows/release.yml`
+
+**Triggers:**
+- Push of version tags (e.g., `v1.0.0`)
+- Manual trigger via `workflow_dispatch` with tag input
+
+**What it does:**
+1. Validates tag format (`v*.*.*`)
+2. Generates changelog from git commits
+3. Creates release artifacts:
+   - `r2r.toml` - R2R configuration
+   - `compose.full.yaml` - Docker Compose config
+   - `DEPLOYMENT.md` - Deployment guide
+4. Creates GitHub Release with artifacts
+
+**Badge:** ![Release](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/release.yml/badge.svg)
+
+**How to create a release:**
+
+```bash
+# 1. Create and push version tag
+git tag v1.0.0
+git push origin v1.0.0
+
+# 2. Workflow automatically creates release with:
+#    - Auto-generated changelog (grouped by commit type)
+#    - Configuration files as attachments
+#    - Deployment instructions
+```
+
+**Manual release:**
+
+```bash
+# Trigger workflow manually from GitHub Actions UI
+# Actions → Release → Run workflow
+# Enter tag: v1.0.0
+```
+
+---
+
 ## Local Testing
 
 Test workflows locally using [act](https://github.com/nektos/act):

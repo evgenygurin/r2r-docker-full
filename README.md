@@ -4,6 +4,7 @@
 [![Security Scan](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/security-scan.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/security-scan.yml)
 [![Docker Build](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/docker-build.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/docker-build.yml)
 [![Lint](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/lint.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/lint.yml)
+[![Release](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/release.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/release.yml)
 
 Production-ready R2R (RAG to Riches) deployment with Docker Compose.
 
