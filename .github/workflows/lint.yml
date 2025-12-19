@@ -86,4 +86,4 @@ jobs:
         with:
           files: .
           config_file: .markdownlint.json
-          ignore_files: data/,utils/,docker/user_configs/,docker/user_tools/
+          ignore_path: .markdownlintignore

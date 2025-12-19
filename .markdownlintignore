@@ -1,0 +1,10 @@
+# Ignore external data/code directories
+data/
+utils/
+
+# Ignore R2R submodule user configs (in data/)
+docker/user_configs/
+docker/user_tools/
+
+# Ignore plan documents (have different markdown style)
+docs/plans/
