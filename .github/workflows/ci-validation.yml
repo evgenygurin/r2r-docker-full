@@ -36,9 +36,30 @@ jobs:
 
       - name: Check for hardcoded secrets
         run: |
-          if grep -E "(password|secret|key|token)\s*=\s*['"](?!\\$\{)" docker/user_configs/r2r.toml; then
-            echo "❌ ERROR: Found hardcoded secrets in r2r.toml"
-            echo "Use environment variable syntax: \${VAR_NAME}"
-            exit 1
-          fi
-          echo "✅ No hardcoded secrets found"
+          python3 << 'EOF'
+          import re
+          import sys
+
+          with open('docker/user_configs/r2r.toml', 'r') as f:
+              content = f.read()
+
+          # Find assignments to sensitive keys
+          pattern = r'(password|secret|key|token)\s*=\s*["\'](.+?)["\']'
+          matches = re.finditer(pattern, content, re.IGNORECASE)
+
+          hardcoded = []
+          for match in matches:
+              value = match.group(2)
+              # Exclude environment variable syntax and empty strings
+              if not value.startswith('${') and value != '':
+                  hardcoded.append(match.group(0))
+
+          if hardcoded:
+              print("❌ ERROR: Found hardcoded secrets in r2r.toml")
+              for secret in hardcoded:
+                  print(f"  - {secret}")
+              print("\nUse environment variable syntax: ${VAR_NAME}")
+              sys.exit(1)
+
+          print("✅ No hardcoded secrets found")
+          EOF
