@@ -170,7 +170,7 @@ response = client.retrieval.rag(
 response = client.retrieval.rag(
     query="Compare and contrast these three papers...",
     rag_generation_config={
-        "model": "anthropic/claude-3-opus-20240229",
+        "model": "anthropic/claude-sonnet-4-20250514",  # Or claude-opus-4 for highest quality
         "temperature": 0.7,
         "max_tokens": 2000
     }
@@ -374,8 +374,8 @@ base_dimension = 1536
 
 ```toml
 [app]
-quality_llm = "anthropic/claude-3-opus-20240229"  # Complex queries
-fast_llm = "openai/gpt-4o-mini"                   # Simple queries
+quality_llm = "anthropic/claude-sonnet-4-20250514"  # Or claude-opus-4 for best quality
+fast_llm = "openai/gpt-4o-mini"                     # Simple queries
 ```
 
 ### 3. Disable Expensive Features
@@ -383,7 +383,7 @@ fast_llm = "openai/gpt-4o-mini"                   # Simple queries
 ```toml
 [ingestion]
 automatic_extraction = false        # Disable entity extraction
-skip_document_summary = false        # Keep summaries (useful)
+skip_document_summary = true        # Skip summaries to reduce LLM calls
 
 [ingestion.chunk_enrichment_settings]
 enable_chunk_enrichment = false     # Very expensive!
@@ -573,7 +573,7 @@ require_authentication = false
 ```toml
 [app]
 project_name = "r2r-code-docs"
-quality_llm = "anthropic/claude-3-opus-20240229"
+quality_llm = "anthropic/claude-sonnet-4-20250514"
 fast_llm = "openai/gpt-4o-mini"
 
 [embedding]
@@ -605,7 +605,7 @@ route_per_min = 20
 ```toml
 [app]
 project_name = "r2r-research"
-quality_llm = "anthropic/claude-3-opus-20240229"
+quality_llm = "anthropic/claude-sonnet-4-20250514"
 
 [embedding]
 provider = "litellm"
