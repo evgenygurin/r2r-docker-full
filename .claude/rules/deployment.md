@@ -1,5 +1,68 @@
 # Deployment Procedures
 
+## КРИТИЧЕСКИЕ ПРАВИЛА (НЕ НАРУШАТЬ!)
+
+### Embedding Model
+
+**НИКОГДА не меняй `base_dimension` без пересоздания базы данных!**
+
+- Текущая база создана с dimension=768
+- Изменение dimension = ВСЕ документы нужно реиндексировать
+- Если нужна другая модель — выбирай с ТЕМ ЖЕ dimension
+
+```toml
+# ✅ РАБОТАЕТ (768 dim)
+base_model = "huggingface/BAAI/bge-base-en-v1.5"
+base_dimension = 768
+
+# ❌ СЛОМАЕТ PRODUCTION (384 dim)
+base_model = "huggingface/BAAI/bge-small-en-v1.5"
+base_dimension = 384
+```
+
+### MinIO Configuration
+
+**НИКОГДА не используй ${ENV_VAR} в r2r.toml для MinIO!**
+
+R2R НЕ подставляет переменные окружения в TOML. Пароль должен быть захардкожен:
+
+```toml
+# ✅ РАБОТАЕТ - захардкоженный пароль из minio.env
+aws_secret_access_key = "YOUR_MINIO_PASSWORD_HERE"
+
+# ❌ НЕ РАБОТАЕТ - R2R не подставляет env vars
+aws_secret_access_key = "${MINIO_ROOT_PASSWORD}"
+```
+
+**Как получить пароль:**
+```bash
+gcloud compute ssh r2r-vm-new --zone=us-central1-a \
+  --command="grep MINIO_ROOT_PASSWORD /home/laptop/r2r-deploy/env/minio.env"
+```
+
+### Hatchet Token
+
+Если Hatchet выдает "invalid auth token":
+1. Запусти `setup-token` сервис для генерации нового токена
+2. Перезапусти `hatchet-engine`
+3. Затем запусти R2R
+
+```bash
+docker compose -f compose.full.yaml up setup-token
+docker compose -f compose.full.yaml restart hatchet-engine
+docker compose -f compose.full.yaml up -d r2r
+```
+
+### Загрузка файлов на сервер
+
+При деплое ВСЕГДА загружай ВСЕ файлы:
+- `docker/user_configs/r2r.toml`
+- `docker/compose.full.yaml`
+- `docker/compose.yaml`
+- `docker/scripts/*.sh`
+
+---
+
 ## Pre-Deployment Checklist
 
 Before deploying any changes to production:
