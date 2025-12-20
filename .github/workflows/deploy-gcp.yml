@@ -98,8 +98,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
-            'MINIO_PASSWORD=$(grep MINIO_ROOT_PASSWORD '"$DEPLOY_PATH"'/env/minio.env | cut -d= -f2) && \
-             sed -i "s|\${AWS_SECRET_ACCESS_KEY}|$MINIO_PASSWORD|" '"$DEPLOY_PATH"'/user_configs/r2r.toml'
+            'MINIO_PASSWORD=$(grep MINIO_ROOT_PASSWORD '"$DEPLOY_PATH"'/env/minio.env | sed "s/^MINIO_ROOT_PASSWORD=//") && \
+             echo "MinIO password extracted (length: ${#MINIO_PASSWORD})" && \
+             sed -i "s|\${AWS_SECRET_ACCESS_KEY}|$MINIO_PASSWORD|" '"$DEPLOY_PATH"'/user_configs/r2r.toml && \
+             echo "✅ Credential substitution complete" && \
+             grep "aws_secret_access_key" '"$DEPLOY_PATH"'/user_configs/r2r.toml | sed "s/=.*/=***/"'
 
       - name: Restart R2R service
         run: |
