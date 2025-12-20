@@ -139,8 +139,8 @@ batch_size = 512
   [database.route_limits]
 [embedding]
 provider = "litellm"
-base_model = "huggingface/BAAI/bge-small-en-v1.5"
-base_dimension = 384
+base_model = "huggingface/BAAI/bge-base-en-v1.5"
+base_dimension = 768
 batch_size = 32
 concurrent_request_limit = 8
 max_retries = 3
@@ -149,8 +149,8 @@ max_backoff = 64.0
 quantization_settings = { quantization_type = "FP32" }
 [completion_embedding]
 provider = "litellm"
-base_model = "huggingface/BAAI/bge-small-en-v1.5"
-base_dimension = 384
+base_model = "huggingface/BAAI/bge-base-en-v1.5"
+base_dimension = 768
 batch_size = 32
 concurrent_request_limit = 8
 max_retries = 3
@@ -161,7 +161,7 @@ provider = "s3"
 bucket_name = "r2r"
 endpoint_url = "http://minio:9000"
 aws_access_key_id = "minio"
-aws_secret_access_key = "${AWS_SECRET_ACCESS_KEY}"
+aws_secret_access_key = "YOUR_MINIO_PASSWORD_HERE"
 [ingestion]
 provider = "unstructured_local"   
 excluded_parsers = []             

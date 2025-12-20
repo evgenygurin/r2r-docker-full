@@ -8,6 +8,7 @@ __pycache__/
 docker/env/*.env
 credentials/
 docker/user_configs/gcp-key.json
+docker/user_configs/r2r.toml
 
 # Claude Code local overrides
 CLAUDE.local.md
