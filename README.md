@@ -1,6 +1,5 @@
 # R2R Docker Full
 
-[![CI - Validation](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/ci-validation.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/ci-validation.yml)
 [![Security Scan](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/security-scan.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/security-scan.yml)
 [![Docker Build](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/docker-build.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/docker-build.yml)
 [![Lint](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/lint.yml/badge.svg)](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/lint.yml)

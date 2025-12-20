@@ -6,25 +6,6 @@ This repository uses GitHub Actions for automated CI/CD.
 
 ## Workflows
 
-### CI - Configuration Validation
-
-**File:** `.github/workflows/ci-validation.yml`
-
-**Triggers:**
-
-- Pull requests modifying `docker/user_configs/**`
-- Pushes to `main` branch
-
-**What it does:**
-
-1. Validates R2R TOML configuration syntax
-2. Checks for hardcoded secrets
-3. Ensures environment variable syntax is used
-
-**Badge:** ![CI - Validation](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/ci-validation.yml/badge.svg)
-
----
-
 ### Security Scan
 
 **File:** `.github/workflows/security-scan.yml`
@@ -52,14 +33,12 @@ This repository uses GitHub Actions for automated CI/CD.
 **Triggers:**
 
 - Pull requests modifying `docker/**`
-- Pushes to `main` branch
+- Pushes to `main` branch modifying `docker/**`
 
 **What it does:**
 
-1. Validates Docker Compose syntax
-2. Builds and starts R2R stack
-3. Tests service health endpoints
-4. Runs basic API tests
+1. Creates required env files for CI
+2. Validates Docker Compose syntax
 
 **Badge:** ![Docker Build](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/docker-build.yml/badge.svg)
 
@@ -91,24 +70,19 @@ This repository uses GitHub Actions for automated CI/CD.
 
 **Triggers:**
 
-- Manual trigger via `workflow_dispatch`
-- Pushes to `main` modifying `docker/user_configs/r2r.toml`
+- Manual trigger via `workflow_dispatch` only
 
 **What it does:**
 
-1. Validates configuration
-2. Creates backup on server
-3. Uploads new configuration
-4. Restarts R2R service
-5. Verifies health
-6. Automatic rollback on failure
+1. Connects to GCP VM via SSH
+2. Restarts R2R service
+3. Verifies health endpoint
+4. Shows recent error logs
 
 **Required Secrets:**
 
-- `GCP_SA_KEY` - Service account JSON key
-- `GCP_PROJECT_ID` - GCP project ID
-
-See `docs/github-secrets.md` for setup instructions.
+- `GCP_VM_IP` - VM IP address
+- `GCP_SSH_PRIVATE_KEY_BASE64` - SSH private key (base64 encoded)
 
 ---
 
@@ -125,11 +99,7 @@ See `docs/github-secrets.md` for setup instructions.
 
 1. Validates tag format (`v*.*.*`)
 2. Generates changelog from git commits
-3. Creates release artifacts:
-   - `r2r.toml` - R2R configuration
-   - `compose.full.yaml` - Docker Compose config
-   - `DEPLOYMENT.md` - Deployment guide
-4. Creates GitHub Release with artifacts
+3. Creates GitHub Release with changelog
 
 **Badge:** ![Release](https://github.com/evgenygurin/r2r-docker-full/actions/workflows/release.yml/badge.svg)
 
@@ -140,18 +110,7 @@ See `docs/github-secrets.md` for setup instructions.
 git tag v1.0.0
 git push origin v1.0.0
 
-# 2. Workflow automatically creates release with:
-#    - Auto-generated changelog (grouped by commit type)
-#    - Configuration files as attachments
-#    - Deployment instructions
-```
-
-**Manual release:**
-
-```bash
-# Trigger workflow manually from GitHub Actions UI
-# Actions → Release → Run workflow
-# Enter tag: v1.0.0
+# 2. Workflow automatically creates release with auto-generated changelog
 ```
 
 ---
@@ -164,13 +123,10 @@ Test workflows locally using [act](https://github.com/nektos/act):
 # Install act
 brew install act
 
-# Test validation workflow
-act pull_request -W .github/workflows/ci-validation.yml
-
 # Test security scan
 act pull_request -W .github/workflows/security-scan.yml -j secret-scan
 
-# Test Docker build (requires Docker)
+# Test Docker build
 act pull_request -W .github/workflows/docker-build.yml
 ```
 
@@ -178,9 +134,8 @@ act pull_request -W .github/workflows/docker-build.yml
 
 1. **Always test locally before pushing** - Use `act` to verify workflows
 2. **Keep secrets in GitHub Secrets** - Never commit secrets
-3. **Use environment-specific configurations** - Production vs staging
-4. **Monitor workflow runs** - Check Actions tab regularly
-5. **Review Dependabot PRs** - Keep dependencies updated
+3. **Monitor workflow runs** - Check Actions tab regularly
+4. **Review Dependabot PRs** - Keep dependencies updated
 
 ## Troubleshooting
 
@@ -193,9 +148,9 @@ Check that GitHub Actions has correct permissions:
 
 ### GCP deployment fails with authentication error
 
-1. Verify `GCP_SA_KEY` secret is correct JSON
-2. Check service account has required permissions
-3. Verify `GCP_PROJECT_ID` matches your project
+1. Verify SSH key is correctly base64 encoded
+2. Check VM IP is correct
+3. Verify SSH access from GitHub Actions IP ranges
 
 ### Docker build times out
 

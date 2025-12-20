@@ -114,30 +114,9 @@ on:
 3. Check for cost impact (new jobs, longer timeouts)
 4. Validate YAML syntax: `yamllint .github/workflows/*.yml`
 
-### Reusable Workflows
+### Keep Workflows Simple
 
-**PREFER reusable workflows for common tasks:**
-
-```yaml
-# ✅ GOOD - Use reusable workflow
-jobs:
-  setup:
-    uses: ./.github/workflows/reusable-setup.yml
-    with:
-      python-version: '3.11'
-```
-
-**DON'T duplicate setup code across workflows:**
-
-```yaml
-# ❌ BAD - Duplicated setup
-- uses: actions/checkout@v4
-- uses: actions/setup-python@v5
-  with:
-    python-version: '3.11'
-- uses: actions/cache@v4
-  # ... repeated in every workflow
-```
+**Each workflow should be self-contained with minimal dependencies.**
 
 ### Job Structure
 
@@ -210,12 +189,6 @@ run: |
 
 ## Project-Specific Workflows
 
-### CI Validation (ci-validation.yml)
-
-**Triggers:** PRs touching `docker/user_configs/**`, pushes to main
-**Purpose:** Validate TOML config, detect hardcoded secrets
-**Uses:** Python script (not grep) for secret detection
-
 ### Security Scan (security-scan.yml)
 
 **Triggers:** All PRs, pushes to main, weekly Monday 9am
@@ -225,9 +198,8 @@ run: |
 ### Docker Build (docker-build.yml)
 
 **Triggers:** PRs touching `docker/**`, pushes to main
-**Purpose:** Build R2R stack, test health endpoints
-**Cost:** ~15-20 min, uses caching
-**Note:** Creates test env file for CI
+**Purpose:** Validate Docker Compose syntax
+**Note:** Creates test env files for CI (gitignored in repo)
 
 ### Lint (lint.yml)
 
@@ -237,16 +209,14 @@ run: |
 
 ### Deploy to GCP (deploy-gcp.yml)
 
-**Triggers:** Manual (`workflow_dispatch`), r2r.toml changes
-**Purpose:** Deploy config to production with rollback
-**Secrets:** `GCP_SA_KEY`, `GCP_PROJECT_ID`
-**Safety:** Validates config, creates backup, auto-rollback on failure
+**Triggers:** Manual (`workflow_dispatch`) only
+**Purpose:** Restart R2R service on production server
+**Secrets:** `GCP_VM_IP`, `GCP_SSH_PRIVATE_KEY_BASE64`
 
 ### Release (release.yml)
 
 **Triggers:** Version tags (`v*.*.*`), manual
 **Purpose:** Create GitHub release with changelog
-**Artifacts:** r2r.toml, compose.full.yaml, DEPLOYMENT.md
 **Note:** Auto-generates changelog grouped by commit type
 
 ---
@@ -312,13 +282,13 @@ run: |
 brew install act
 
 # Test specific workflow
-act pull_request -W .github/workflows/ci-validation.yml
+act pull_request -W .github/workflows/docker-build.yml
 
 # Test with secrets
 act -s GITHUB_TOKEN=your_token
 
 # Test specific job
-act -j build-test
+act -j validate-compose
 ```
 
 ### Limitations of act
@@ -334,19 +304,16 @@ act -j build-test
 ```text
 .github/
 └── workflows/
-    ├── reusable-setup.yml          # Reusable: Python/Docker setup
-    ├── ci-validation.yml           # CI: Config validation
     ├── security-scan.yml           # Security: Gitleaks, Trivy
-    ├── docker-build.yml            # Build: R2R stack testing
+    ├── docker-build.yml            # Build: Compose validation
     ├── lint.yml                    # Quality: Code linting
-    ├── deploy-gcp.yml              # Deploy: Production deployment
+    ├── deploy-gcp.yml              # Deploy: Production restart
     └── release.yml                 # Release: Version tagging
 ```
 
 **Naming convention:**
 
 - `<purpose>-<target>.yml` - e.g., `deploy-gcp.yml`
-- `reusable-<function>.yml` - for reusable workflows
 
 ---
 
