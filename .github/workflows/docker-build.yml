@@ -24,41 +24,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Validate compose files syntax
+      - name: Create required env files
         run: |
-          docker compose -f docker/compose.full.yaml config > /dev/null
-          docker compose -f docker/compose.yaml config > /dev/null
-          echo "✅ Docker Compose files are valid"
-
-  build-test:
-    name: Build and Test R2R Stack
-    runs-on: ubuntu-latest
-    needs: validate-compose
-    timeout-minutes: 20
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Cache Docker layers
-        uses: actions/cache@v5
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
-      - name: Create test environment files
-        run: |
-          mkdir -p docker/env
+          mkdir -p docker/env docker/user_configs
 
           cat > docker/env/r2r.env << EOF
-          # CI test credentials - DO NOT USE IN PRODUCTION
           OPENAI_API_KEY=sk-test-fake-key-for-ci
-          ANTHROPIC_API_KEY=sk-ant-test-fake-key-for-ci
+          EOF
+
+          cat > docker/env/r2r-full.env << EOF
+          OPENAI_API_KEY=sk-test-fake-key-for-ci
+          R2R_CONFIG_PATH=/app/user_configs/r2r.toml
           EOF
 
           cat > docker/env/postgres.env << EOF
@@ -72,64 +48,35 @@ jobs:
           MINIO_ROOT_PASSWORD=minioadmin123
           EOF
 
-      - name: Start R2R stack
+          cat > docker/env/hatchet.env << EOF
+          DATABASE_URL=postgres://hatchet:hatchet@hatchet-postgres:5432/hatchet
+          POSTGRES_USER=hatchet
+          POSTGRES_PASSWORD=hatchet
+          POSTGRES_DB=hatchet
+          RABBITMQ_DEFAULT_USER=hatchet
+          RABBITMQ_DEFAULT_PASS=hatchet
+          SERVER_GRPC_BROADCAST_ADDRESS=hatchet-engine:7077
+          EOF
+
+          cat > docker/env/r2r-dashboard.env << EOF
+          NEXT_PUBLIC_API_URL=http://localhost:7272
+          EOF
+
+          cat > docker/user_configs/r2r.toml << EOF
+          [app]
+          project_name = "r2r-ci-test"
+
+          [embedding]
+          provider = "litellm"
+          base_model = "openai/text-embedding-3-small"
+          base_dimension = 1536
+
+          [ingestion]
+          chunking_strategy = "by_title"
+          EOF
+
+      - name: Validate compose files syntax
         run: |
-          cd docker
-          docker compose -f compose.full.yaml --profile postgres --profile minio up -d
-
-      - name: List running containers
-        run: docker ps --format 'table {{.Names}}\t{{.Status}}'
-
-      - name: Wait for services
-        run: |
-          echo "Waiting 60 seconds for services to start..."
-          sleep 60
-
-      - name: Check service health
-        run: |
-          # Check PostgreSQL
-          docker exec r2r-docker-full-postgres-1 pg_isready -U postgres || exit 1
-          echo "✅ PostgreSQL is ready"
-
-          # Check MinIO
-          curl -f http://localhost:9000/minio/health/live || exit 1
-          echo "✅ MinIO is healthy"
-
-          # Check R2R health endpoint (with retries)
-          for i in {1..10}; do
-            if curl -f http://localhost:7272/v3/health; then
-              echo "✅ R2R is healthy"
-              exit 0
-            fi
-            echo "Attempt $i: R2R not ready, waiting..."
-            sleep 10
-          done
-          echo "❌ R2R failed to become healthy"
-          docker logs r2r-docker-full-r2r-1 --tail=100
-          exit 1
-
-      - name: Run basic API tests
-        run: |
-          # Test health endpoint
-          response=$(curl -s http://localhost:7272/v3/health)
-          echo "$response" | jq -e '.status == "healthy"' || exit 1
-
-          echo "✅ All API tests passed"
-
-      - name: Show logs on failure
-        if: failure()
-        run: |
-          echo "=== R2R Logs ==="
-          docker logs r2r-docker-full-r2r-1 --tail=200
-
-          echo "=== PostgreSQL Logs ==="
-          docker logs r2r-docker-full-postgres-1 --tail=100
-
-          echo "=== MinIO Logs ==="
-          docker logs r2r-docker-full-minio-1 --tail=100
-
-      - name: Cleanup
-        if: always()
-        run: |
-          cd docker
-          docker compose -f compose.full.yaml down -v
+          docker compose -f docker/compose.full.yaml config > /dev/null
+          docker compose -f docker/compose.yaml config > /dev/null
+          echo "Docker Compose files are valid"

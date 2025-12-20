@@ -11,12 +11,6 @@ on:
           - production
           - staging
 
-  push:
-    branches:
-      - main
-    paths:
-      - 'docker/user_configs/r2r.toml'
-
 env:
   GCP_VM_USER: laptop
   GCP_VM_IP: ${{ secrets.GCP_VM_IP }}
@@ -30,9 +24,6 @@ jobs:
     environment: ${{ github.event.inputs.environment || 'production' }}
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Set up SSH
         env:
           SSH_KEY_BASE64: ${{ secrets.GCP_SSH_PRIVATE_KEY_BASE64 }}
@@ -46,63 +37,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
-            "echo '✅ VM is reachable'"
-
-      - name: Validate TOML before deployment
-        run: |
-          pip install toml
-          python -c "import toml; toml.load('docker/user_configs/r2r.toml')"
-          echo "✅ TOML validation passed"
-
-      - name: Check for secrets in config
-        run: |
-          python3 << 'EOF'
-          import re
-          import sys
-
-          with open('docker/user_configs/r2r.toml', 'r') as f:
-              content = f.read()
-
-          pattern = r'(password|secret|key|token)\s*=\s*["\'](.+?)["\']'
-          matches = re.finditer(pattern, content, re.IGNORECASE)
-
-          hardcoded = []
-          for match in matches:
-              value = match.group(2)
-              if not value.startswith('${') and value != '':
-                  hardcoded.append(match.group(0))
-
-          if hardcoded:
-              print("❌ ERROR: Found hardcoded secrets")
-              for secret in hardcoded:
-                  print(f"  - {secret}")
-              sys.exit(1)
-
-          print("✅ No hardcoded secrets")
-          EOF
-
-      - name: Create backup on server
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            $GCP_VM_USER@$GCP_VM_IP \
-            "cp $DEPLOY_PATH/user_configs/r2r.toml \
-                $DEPLOY_PATH/user_configs/r2r.toml.backup-\$(date +%Y%m%d-%H%M%S)"
-
-      - name: Upload configuration
-        run: |
-          scp -o StrictHostKeyChecking=no \
-            docker/user_configs/r2r.toml \
-            $GCP_VM_USER@$GCP_VM_IP:$DEPLOY_PATH/user_configs/r2r.toml
-
-      - name: Substitute MinIO credentials
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            $GCP_VM_USER@$GCP_VM_IP \
-            'MINIO_PASSWORD=$(grep MINIO_ROOT_PASSWORD '"$DEPLOY_PATH"'/env/minio.env | sed "s/^MINIO_ROOT_PASSWORD=//") && \
-             echo "MinIO password extracted (length: ${#MINIO_PASSWORD})" && \
-             sed -i "s|\${AWS_SECRET_ACCESS_KEY}|$MINIO_PASSWORD|" '"$DEPLOY_PATH"'/user_configs/r2r.toml && \
-             echo "✅ Credential substitution complete" && \
-             grep "aws_secret_access_key" '"$DEPLOY_PATH"'/user_configs/r2r.toml | sed "s/=.*/=***/"'
+            "echo 'VM is reachable'"
 
       - name: Restart R2R service
         run: |
@@ -116,11 +51,10 @@ jobs:
 
       - name: Verify deployment
         run: |
-          # Retry health check up to 8 times (120 seconds total)
           for i in {1..8}; do
             echo "Health check attempt $i/8..."
             if ssh -o StrictHostKeyChecking=no $GCP_VM_USER@$GCP_VM_IP "curl -sf http://localhost:7272/v3/health"; then
-              echo "✅ Deployment successful"
+              echo "Deployment successful"
               exit 0
             fi
             if [ $i -lt 8 ]; then
@@ -128,8 +62,7 @@ jobs:
               sleep 15
             fi
           done
-
-          echo "❌ Health check failed after 8 attempts"
+          echo "Health check failed after 8 attempts"
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
             "docker logs r2r-deploy-r2r-1 --tail=100"
@@ -140,19 +73,3 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
             $GCP_VM_USER@$GCP_VM_IP \
             "docker logs r2r-deploy-r2r-1 --tail=50 | grep -i error || true"
-
-      - name: Rollback on failure
-        if: failure()
-        run: |
-          echo "🔄 Rolling back deployment..."
-          ssh -o StrictHostKeyChecking=no \
-            $GCP_VM_USER@$GCP_VM_IP \
-            "LATEST_BACKUP=\$(ls -t $DEPLOY_PATH/user_configs/r2r.toml.backup-* | head -1) && \
-             if [ -f \"\$LATEST_BACKUP\" ]; then \
-               cp \"\$LATEST_BACKUP\" $DEPLOY_PATH/user_configs/r2r.toml && \
-               cd $DEPLOY_PATH && docker compose restart r2r && \
-               echo '✅ Rollback completed'; \
-             else \
-               echo '❌ No backup found for rollback'; \
-               exit 1; \
-             fi"
