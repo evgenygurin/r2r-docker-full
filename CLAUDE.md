@@ -49,13 +49,20 @@
 
 ### R2R-Specific Constraints
 
+**⚠️ КРИТИЧНО - см. @.claude/rules/deployment.md для полных правил!**
+
 - **NEVER** use `chunking_strategy = "recursive"` - Unstructured doesn't support it
   - **ALWAYS** use `chunking_strategy = "by_title"` instead
 - **NEVER** change `base_dimension` without re-ingesting all documents
+  - **PRODUCTION DATABASE = 768 dim** (НЕ МЕНЯТЬ!)
 - **ALWAYS** match `base_dimension` to embedding model:
+  - `huggingface/BAAI/bge-base-en-v1.5` → 768 ✅ (текущая production модель)
   - `text-embedding-3-small` → 1536
   - `text-embedding-3-large` → 3072
   - `all-MiniLM-L6-v2` → 384
+  - `huggingface/BAAI/bge-small-en-v1.5` → 384 ❌ (не использовать!)
+- **NEVER** use `${ENV_VAR}` in r2r.toml for MinIO password - must be hardcoded
+- **ALWAYS** run `setup-token` service if Hatchet auth fails
 
 ## Quick Diagnostics
 
